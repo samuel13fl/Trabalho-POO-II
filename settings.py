@@ -16,8 +16,12 @@ CYAN = (0, 255, 255)
 WIDTH = 1024   # 16 * 64 or 32 * 32 or 64 * 16
 HEIGHT = 768  # 16 * 48 or 32 * 24 or 64 * 12
 FPS = 60
-TITLE = "Tilemap Demo"
+TITLE = "GUNDALF THE WIZARD"
 BGCOLOR = BROWN
+mainscreen = 'TITLESCREEN2.png'
+optionscreen = 'OPTIONSCREEN1.png'
+gameoverscreen = 'GAMEOVER2.png'
+pausescreen = 'pausescreen.png'
 
 TILESIZE = 64
 GRIDWIDTH = WIDTH / TILESIZE
@@ -27,7 +31,7 @@ GRIDHEIGHT = HEIGHT / TILESIZE
 PLAYER_HEALTH = 100
 PLAYER_SPEED = 280
 PLAYER_ROT_SPEED = 200
-PLAYER_IMG = 'manBlue_gun.png'
+PLAYER_IMG = 'wizardwithagun.png'
 PLAYER_HIT_RECT = pg.Rect(0, 0, 35, 35)
 BARREL_OFFSET = vec(30, 10)
 
@@ -52,6 +56,7 @@ WEAPONS['shotgun'] = {'bullet_speed': 400,
                       'bullet_count': 12}
 
 # Mob settings
+
 MOB_IMG = 'zombie1_hold.png'
 MOB_SPEEDS = [150, 100, 75, 125]
 MOB_HIT_RECT = pg.Rect(0, 0, 30, 30)
