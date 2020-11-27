@@ -6,8 +6,8 @@ import settings
 from sprites import *
 from tilemap import *
 
-
 # HUD functions
+
 def draw_player_health(surf, x, y, pct):
     if pct < 0:
         pct = 0
@@ -25,7 +25,6 @@ def draw_player_health(surf, x, y, pct):
     pg.draw.rect(surf, col, fill_rect)
     pg.draw.rect(surf, WHITE, outline_rect, 2)
 
-
 class Game:
     def __init__(self):
         pg.mixer.pre_init(44100, -16, 4, 2048)
@@ -35,6 +34,10 @@ class Game:
         self.clock = pg.time.Clock()
         self.load_data()
         self.load_menus()
+
+    def draw_gun(self):
+        while self.playing:
+            pg.screen.blit()
 
     def draw_text(self, text, font_name, size, color, x, y, align="topleft"):
         font = pg.font.Font(font_name, size)
@@ -56,7 +59,7 @@ class Game:
         self.gameoverscreen = pg.image.load(path.join(img_folder, settings.gameoverscreen)).convert_alpha()
         self.optionscreen = pg.image.load(path.join(img_folder, settings.optionscreen)).convert_alpha()
         self.pausescreen = pg.image.load(path.join(img_folder, settings.pausescreen)).convert_alpha()
-    
+        self.victoryscreen = pg.image.load(path.join(img_folder, settings.victoryscreen)).convert_alpha()
     
     def load_data(self):
         game_folder = path.dirname(__file__)
@@ -119,19 +122,19 @@ class Game:
         self.mobs = pg.sprite.Group()
         self.bullets = pg.sprite.Group()
         self.items = pg.sprite.Group()
-        self.map = TiledMap(path.join(self.map_folder, 'testeopreessor.tmx'))
+        self.map = TiledMap(path.join(self.map_folder, 'TesteFase1.tmx'))
         self.map_img = self.map.make_map()
         self.map.rect = self.map_img.get_rect()
         for tile_object in self.map.tmxdata.objects:
             obj_center = vec(tile_object.x + tile_object.width/2, tile_object.y + tile_object.height/2)
 
             if tile_object.name == 'player':
-                self.player = Player(self, obj_center.x, obj_center.y)
+                self.player = Player(self, obj_center.x, obj_center.y)  
             if tile_object.name == 'zombie':
                 Mob(self, obj_center.x, obj_center.y)
             if tile_object.name == 'wall':
                 Obstacle(self, tile_object.x, tile_object.y, tile_object.width, tile_object.height)
-            if tile_object.name in ['health', 'shotgun']:
+            if tile_object.name in ['health', 'shotgun','staff']:
                 Item(self, obj_center, tile_object.name)
 
         self.camera = Camera(self.map.width, self.map.height)
@@ -144,12 +147,17 @@ class Game:
         # game loop - set self.playing = False to end the game
         self.playing = True
         pg.mixer.music.play(loops=-1)
-        while self.playing:
+        while True:
             self.dt = self.clock.tick(FPS) / 1000.0  # fix for Python 2.x
             self.events()
             if not self.paused:
                 self.update()
             self.draw()
+            if not self.playing:
+                if len(self.mobs) == 0:
+                    self.show_victoryscreen()
+                else:
+                    self.show_go_screen()
 
     def quit(self):
         pg.quit()
@@ -173,6 +181,10 @@ class Game:
                 hit.kill()
                 self.effects_sounds['gun_pickup'].play()
                 self.player.weapon = 'shotgun'
+            if hit.type == 'staff':
+                hit.kill()
+                self.effects_sounds['gun_pickup'].play()
+                self.player.weapon = 'staff'
         # mobs hit player
         hits = pg.sprite.spritecollide(self.player, self.mobs, False, collide_hit_rect)
         for hit in hits:
@@ -228,20 +240,8 @@ class Game:
         draw_player_health(self.screen, 10, 10, self.player.health / PLAYER_HEALTH)
         self.draw_text('Zombies: {}'.format(len(self.mobs)), self.hud_font, 30, WHITE,
                        WIDTH - 10, 10, align="topright")
-        if self.paused:
-            self.screen.blit(self.dim_screen, (0, 0))
-            self.draw_text("Paused", self.title_font, 105, RED, WIDTH / 2, HEIGHT / 2, align="center")
-            # self.current_screen = "Pause"
-            # self.screen.blit(self.pausescreen, (0, 0))
-            # self.button_pause_back = pg.Rect(400, 300, 200, 50)
-            # self.button_pause_save = pg.Rect(400, 400, 200, 50)
-            # self.button_pause_quit = pg.Rect(400, 500, 200, 50)
-            # pg.draw.rect(self.screen, (255, 0, 0), self.button_pause_back,1)
-            # pg.draw.rect(self.screen, (255, 0, 0), self.button_pause_save,1)
-            # pg.draw.rect(self.screen, (255, 0, 0), self.button_pause_quit,1)
-            # pg.display.flip()
-            # self.wait_for_key()
-
+        #comeco
+        
         pg.display.flip()
 
     def events(self):
@@ -250,11 +250,10 @@ class Game:
             if event.type == pg.QUIT:
                 self.quit()
             if event.type == pg.KEYDOWN:
-        
                 if event.key == pg.K_h:
                     self.draw_debug = not self.draw_debug
                 if event.key == pg.K_ESCAPE:
-                    self.paused = not self.paused
+                    self.show_pause_screen() 
                 if event.key == pg.K_n:
                     self.night = not self.night
                
@@ -265,17 +264,19 @@ class Game:
                     self.click = False
             
     #arrumar ainda
-    # def pause(self):
-    #     self.current_screen = "Pause"
-    #     self.screen.blit(self.pausescreen, (0, 0))
-    #     self.button_pause_back = pg.Rect(400, 300, 200, 50)
-    #     self.button_pause_save = pg.Rect(400, 400, 200, 50)
-    #     self.button_pause_quit = pg.Rect(400, 500, 200, 50)
-    #     pg.draw.rect(self.screen, (255, 0, 0), self.button_pause_back,1)
-    #     pg.draw.rect(self.screen, (255, 0, 0), self.button_pause_save,1)
-    #     pg.draw.rect(self.screen, (255, 0, 0), self.button_pause_quit,1)
-    #     pg.display.flip()
-    #     self.wait_for_key()
+
+    def show_pause_screen(self):
+        self.paused = True
+        self.current_screen = "Pause"
+        self.screen.blit(self.pausescreen, (0, 0))
+        self.button_pause_back = pg.Rect(400, 300, 200, 50)
+        self.button_pause_save = pg.Rect(400, 400, 200, 50)
+        self.button_pause_quit = pg.Rect(400, 500, 200, 50)
+        pg.draw.rect(self.screen, (255, 0, 0), self.button_pause_back,1)
+        pg.draw.rect(self.screen, (255, 0, 0), self.button_pause_save,1)
+        pg.draw.rect(self.screen, (255, 0, 0), self.button_pause_quit,1)
+        pg.display.flip()
+        self.wait_for_key()
 
     def show_start_screen(self):
         self.current_screen = "Start Screen"
@@ -289,8 +290,19 @@ class Game:
         pg.draw.rect(self.screen, (0, 0, 0), self.button_start_option,-1)
         pg.draw.rect(self.screen, (0, 0, 0), self.button_start_quit,-1)
         pg.display.flip()
+        pg.mixer.music.pause()
         self.wait_for_key()
-       
+    
+    def show_victoryscreen(self):
+        self.current_screen = "victoryscreen"
+        self.screen.blit(self.victoryscreen,(0,0))
+        self.button_go_restart = pg.Rect(156, 666, 289, 32)
+        self.button_go_quit = pg.Rect(694, 666, 192, 29)
+        pg.draw.rect(self.screen, (255, 0, 0), self.button_go_restart)
+        pg.draw.rect(self.screen, (255, 0, 0), self.button_go_quit)
+        pg.display.flip()
+        self.wait_for_key()
+
     def show_go_screen(self):
         self.current_screen = "Game Over Screen"
         self.screen.blit(self.gameoverscreen,(0,0))
@@ -308,8 +320,8 @@ class Game:
         self.button_options_volumeup = pg.Rect(744, 80, 40, 72)
         self.button_options_volumedown = pg.Rect(272, 80, 40, 72)
         pg.draw.rect(self.screen, (0, 0, 0), self.button_options_return,-1)
-        pg.draw.rect(self.screen, (255, 0, 0), self.button_options_volumeup,-1)
-        pg.draw.rect(self.screen, (255, 0, 0), self.button_options_volumedown,-1)
+        pg.draw.rect(self.screen, (255, 0, 0), self.button_options_volumeup,1)
+        pg.draw.rect(self.screen, (255, 0, 0), self.button_options_volumedown,1)
         pg.display.flip()
         self.wait_for_key()
 
@@ -328,23 +340,35 @@ class Game:
                         self.click_test = True
             mx, my = pg.mouse.get_pos()
 
-            #  if self.current_screen == "Pause" and self.button_pause_back.collidepoint((mx, my)):
-            #      if self.click_test:
-            #          pass
+            if self.current_screen == "Pause" and self.button_pause_back.collidepoint((mx, my)):
+                if self.click_test:
+                    self.paused = False
+                    self.current_screen = ''
+                    waiting = False
 
-            #  if self.current_screen == "Pause" and self.button_pause_save.collidepoint((mx, my)):
-            #      if self.click_test:
-            #          pass 
+            if self.current_screen == "Pause" and self.button_pause_save.collidepoint((mx, my)):
+                if self.click_test:
+                    pass 
 
-            #  if self.current_screen == "Pause" and self.button_pause_quit.collidepoint((mx, my)):
-            #      if self.click_test:
-            #          g.show_go_screen()
+            if self.current_screen == "Pause" and self.button_pause_quit.collidepoint((mx, my)):
+                if self.click_test:
+                    g.show_start_screen()
+                    
+            if self.current_screen == "victoryscreen" and self.button_go_restart.collidepoint((mx, my)):
+                if self.click_test:
+                    g.new()
+                    g.run()
+                    
+
+            if self.current_screen == "victoryscreen" and self.button_go_quit.collidepoint((mx, my)):
+                if self.click_test:
+                    g.show_start_screen()
 
             if self.current_screen == "Game Over Screen" and self.button_go_restart.collidepoint((mx, my)):
                 if self.click_test:
                     g.new()
                     g.run()
-                    g.show_go_screen()
+                   
 
             if self.current_screen == "Game Over Screen" and self.button_go_quit.collidepoint((mx, my)):
                 if self.click_test:
@@ -354,7 +378,6 @@ class Game:
                 if self.click_test:
                     g.new()
                     g.run()
-                    g.show_go_screen()
 
             if self.current_screen == "Start Screen" and self.button_start_option.collidepoint((mx, my)):
                 if self.click_test:
@@ -370,31 +393,35 @@ class Game:
 
             if self.current_screen == "Options Screen" and self.button_options_volumeup.collidepoint((mx, my)):
                 if self.click_test:
-                    for type_test in self.weapon_sounds:
-                        self.weapon_sounds[type_test][0].set_volume(self.weapon_sounds[type_test][0].get_volume() + 0.1)
-                    for type_test in self.effects_sounds:
-                        self.effects_sounds[type_test].set_volume(self.effects_sounds[type_test].get_volume() + 0.1)
-                    for type_test in self.zombie_moan_sounds:
-                        type_test.set_volume(type_test.get_volume() + 0.1)
-                    for type_test in self.player_hit_sounds:
-                        type_test.set_volume(type_test.get_volume() + 0.1)
-                    for type_test in self.zombie_hit_sounds:
-                        type_test.set_volume(type_test.get_volume() + 0.1)
+                    for sound_type in self.weapon_sounds:
+                        self.weapon_sounds[sound_type][0].set_volume(self.weapon_sounds[sound_type][0].get_volume() + 0.1)
+                    for sound_type in self.effects_sounds:
+                        self.effects_sounds[sound_type].set_volume(self.effects_sounds[sound_type].get_volume() + 0.1)
+                    for sound_type in self.zombie_moan_sounds:
+                        sound_type.set_volume(sound_type.get_volume() + 0.1)
+                    for sound_type in self.player_hit_sounds:
+                        sound_type.set_volume(sound_type.get_volume() + 0.1)
+                    for sound_type in self.zombie_hit_sounds:
+                        sound_type.set_volume(sound_type.get_volume() + 0.1)
+                    pg.mixer.music.set_volume(pg.mixer.music.get_volume() + 0.1)
+                    print(pg.mixer.music.get_volume())
 
             if self.current_screen == "Options Screen" and self.button_options_volumedown.collidepoint((mx, my)):
                 if self.click_test:
-                    for type_test in self.weapon_sounds:
-                        self.weapon_sounds[type_test][0].set_volume(self.weapon_sounds[type_test][0].get_volume() - 0.1)
-                    for type_test in self.effects_sounds:
-                        self.effects_sounds[type_test].set_volume(self.effects_sounds[type_test].get_volume() - 0.1)
-                    for type_test in self.zombie_moan_sounds:
-                        type_test.set_volume(type_test.get_volume() - 0.1)
-                    for type_test in self.player_hit_sounds:
-                        type_test.set_volume(type_test.get_volume() - 0.3)
-                    for type_test in self.zombie_hit_sounds:
-                        type_test.set_volume(type_test.get_volume() - 0.3)
+                    for sound_type in self.weapon_sounds:
+                        self.weapon_sounds[sound_type][0].set_volume(self.weapon_sounds[sound_type][0].get_volume() - 0.1)
+                    for sound_type in self.effects_sounds:
+                        self.effects_sounds[sound_type].set_volume(self.effects_sounds[sound_type].get_volume() - 0.1)
+                    for sound_type in self.zombie_moan_sounds:
+                        sound_type.set_volume(sound_type.get_volume() - 0.1)
+                    for sound_type in self.player_hit_sounds:
+                        sound_type.set_volume(sound_type.get_volume() - 0.3)
+                    for sound_type in self.zombie_hit_sounds:
+                        sound_type.set_volume(sound_type.get_volume() - 0.3)
+                    pg.mixer.music.set_volume(pg.mixer.music.get_volume() - 0.1)
+                    print(pg.mixer.music.get_volume())
+            self.click_test = False
 
 # create the game object
 g = Game()
 g.show_start_screen()
-
