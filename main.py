@@ -25,6 +25,7 @@ def draw_player_health(surf, x, y, pct):
     pg.draw.rect(surf, col, fill_rect)
     pg.draw.rect(surf, WHITE, outline_rect, 2)
 
+
 class Game:
     def __init__(self):
         pg.mixer.pre_init(44100, -16, 4, 2048)
@@ -36,8 +37,13 @@ class Game:
         self.load_menus()
 
     def draw_gun(self):
-        while self.playing:
-            pg.screen.blit()
+        game_folder = path.dirname(__file__)
+        img_folder = path.join(game_folder, 'img')
+        self.weapon = pg.image.load(path.join(img_folder, ITEM_IMAGES[self.player.weapon])).convert_alpha()
+        self.screen.blit(self.weapon,(896,640))
+        self.retangulo = pg.Rect(896,640,128,128)
+        pg.draw.rect(self.screen,(255,0,0),self.retangulo,1)
+        pg.display.flip()
 
     def draw_text(self, text, font_name, size, color, x, y, align="topleft"):
         font = pg.font.Font(font_name, size)
@@ -205,12 +211,6 @@ class Game:
                 mob.health -= bullet.damage
             mob.vel = vec(0, 0)
 
-    def draw_grid(self):
-        for x in range(0, WIDTH, TILESIZE):
-            pg.draw.line(self.screen, LIGHTGREY, (x, 0), (x, HEIGHT))
-        for y in range(0, HEIGHT, TILESIZE):
-            pg.draw.line(self.screen, LIGHTGREY, (0, y), (WIDTH, y))
-
     def render_fog(self):
         # draw the light mask (gradient) onto fog image
         self.fog.fill(NIGHT_COLOR)
@@ -219,7 +219,7 @@ class Game:
         self.screen.blit(self.fog, (0, 0), special_flags=pg.BLEND_MULT)
 
     def draw(self):
-        pg.display.set_caption("{:.2f}".format(self.clock.get_fps()))
+        pg.display.set_caption("GUNDALF THE WIZARD   {:.2f}".format(self.clock.get_fps()))
         # self.screen.fill(BGCOLOR)
         self.screen.blit(self.map_img, self.camera.apply(self.map))
         # self.draw_grid()
@@ -241,7 +241,7 @@ class Game:
         self.draw_text('Zombies: {}'.format(len(self.mobs)), self.hud_font, 30, WHITE,
                        WIDTH - 10, 10, align="topright")
         #comeco
-        
+        self.draw_gun()
         pg.display.flip()
 
     def events(self):
@@ -262,19 +262,17 @@ class Game:
                     self.click = True
                 if event.button == 1:
                     self.click = False
-            
-    #arrumar ainda
 
     def show_pause_screen(self):
         self.paused = True
         self.current_screen = "Pause"
         self.screen.blit(self.pausescreen, (0, 0))
-        self.button_pause_back = pg.Rect(400, 300, 200, 50)
-        self.button_pause_save = pg.Rect(400, 400, 200, 50)
-        self.button_pause_quit = pg.Rect(400, 500, 200, 50)
-        pg.draw.rect(self.screen, (255, 0, 0), self.button_pause_back,1)
-        pg.draw.rect(self.screen, (255, 0, 0), self.button_pause_save,1)
-        pg.draw.rect(self.screen, (255, 0, 0), self.button_pause_quit,1)
+        self.button_pause_back = pg.Rect(416 , 323, 192, 28)
+        self.button_pause_save = pg.Rect(448, 436, 128, 28)
+        self.button_pause_quit = pg.Rect(448, 565, 128, 28) 
+        pg.draw.rect(self.screen, (255, 0, 0), self.button_pause_back,-1)
+        pg.draw.rect(self.screen, (255, 0, 0), self.button_pause_save,-1)
+        pg.draw.rect(self.screen, (255, 0, 0), self.button_pause_quit,-1)
         pg.display.flip()
         self.wait_for_key()
 
@@ -296,10 +294,10 @@ class Game:
     def show_victoryscreen(self):
         self.current_screen = "victoryscreen"
         self.screen.blit(self.victoryscreen,(0,0))
-        self.button_go_restart = pg.Rect(156, 666, 289, 32)
-        self.button_go_quit = pg.Rect(694, 666, 192, 29)
-        pg.draw.rect(self.screen, (255, 0, 0), self.button_go_restart)
-        pg.draw.rect(self.screen, (255, 0, 0), self.button_go_quit)
+        self.button_go_restart = pg.Rect(100, 703, 288, 33)
+        self.button_go_quit = pg.Rect(640, 706, 192, 28)
+        pg.draw.rect(self.screen, (255, 0, 0), self.button_go_restart,-1)
+        pg.draw.rect(self.screen, (255, 0, 0), self.button_go_quit,-1)
         pg.display.flip()
         self.wait_for_key()
 
@@ -320,8 +318,8 @@ class Game:
         self.button_options_volumeup = pg.Rect(744, 80, 40, 72)
         self.button_options_volumedown = pg.Rect(272, 80, 40, 72)
         pg.draw.rect(self.screen, (0, 0, 0), self.button_options_return,-1)
-        pg.draw.rect(self.screen, (255, 0, 0), self.button_options_volumeup,1)
-        pg.draw.rect(self.screen, (255, 0, 0), self.button_options_volumedown,1)
+        pg.draw.rect(self.screen, (255, 0, 0), self.button_options_volumeup,-1)
+        pg.draw.rect(self.screen, (255, 0, 0), self.button_options_volumedown,-1)
         pg.display.flip()
         self.wait_for_key()
 
@@ -335,91 +333,89 @@ class Game:
                 if event.type == pg.QUIT:
                     waiting = False
                     self.quit()
+                if event.type == pg.KEYDOWN:
+                    if event.key == pg.K_ESCAPE and self.current_screen == "Pause":
+                        self.paused = False
+                        self.current_screen = ''
+                        waiting = False
                 if event.type == pg.MOUSEBUTTONDOWN:
                     if event.button == 1:
                         self.click_test = True
             mx, my = pg.mouse.get_pos()
-
-            if self.current_screen == "Pause" and self.button_pause_back.collidepoint((mx, my)):
-                if self.click_test:
-                    self.paused = False
-                    self.current_screen = ''
-                    waiting = False
-
-            if self.current_screen == "Pause" and self.button_pause_save.collidepoint((mx, my)):
-                if self.click_test:
-                    pass 
-
-            if self.current_screen == "Pause" and self.button_pause_quit.collidepoint((mx, my)):
-                if self.click_test:
-                    g.show_start_screen()
+            if self.click_test:
+                if self.current_screen == "Pause":
+                    if self.button_pause_back.collidepoint((mx, my)):
+                        self.paused = False
+                        self.current_screen = ''
+                        waiting = False
                     
-            if self.current_screen == "victoryscreen" and self.button_go_restart.collidepoint((mx, my)):
-                if self.click_test:
-                    g.new()
-                    g.run()
+                    elif self.button_pause_save.collidepoint((mx, my)):
+                        pass 
+
+                    elif self.button_pause_quit.collidepoint((mx, my)):
+                        g.show_start_screen()
+                        
+                elif self.current_screen == "victoryscreen":
+                    if self.button_go_restart.collidepoint((mx, my)):
+                        g.new()
+                        g.run()
+                        
+                    elif self.button_go_quit.collidepoint((mx, my)):
+                        g.show_start_screen()
+
+                elif self.current_screen == "Game Over Screen":
+                    if self.button_go_restart.collidepoint((mx, my)):
+                        g.new()
+                        g.run()
                     
+                    elif self.button_go_quit.collidepoint((mx, my)):
+                        g.show_start_screen()
 
-            if self.current_screen == "victoryscreen" and self.button_go_quit.collidepoint((mx, my)):
-                if self.click_test:
-                    g.show_start_screen()
+                elif self.current_screen == "Start Screen":
+                    if self.button_start_start.collidepoint((mx, my)):
+                        g.new()
+                        g.run()
 
-            if self.current_screen == "Game Over Screen" and self.button_go_restart.collidepoint((mx, my)):
-                if self.click_test:
-                    g.new()
-                    g.run()
-                   
+                    elif self.button_start_option.collidepoint((mx, my)):
+                        g.options()
 
-            if self.current_screen == "Game Over Screen" and self.button_go_quit.collidepoint((mx, my)):
-                if self.click_test:
-                    g.show_start_screen()
+                    elif self.button_start_load.collidepoint((mx, my)):
+                        pass
 
-            if self.current_screen == "Start Screen" and self.button_start_start.collidepoint((mx, my)):
-                if self.click_test:
-                    g.new()
-                    g.run()
+                    elif self.button_start_quit.collidepoint((mx, my)):
+                        self.quit()
+            
+                elif self.current_screen == "Options Screen":
+                    if self.button_options_return.collidepoint((mx, my)):
+                        g.show_start_screen()
 
-            if self.current_screen == "Start Screen" and self.button_start_option.collidepoint((mx, my)):
-                if self.click_test:
-                    g.options()
+                    elif self.button_options_volumeup.collidepoint((mx, my)):
+                        for sound_type in self.weapon_sounds:
+                            self.weapon_sounds[sound_type][0].set_volume(self.weapon_sounds[sound_type][0].get_volume() + 0.1)
+                        for sound_type in self.effects_sounds:
+                            self.effects_sounds[sound_type].set_volume(self.effects_sounds[sound_type].get_volume() + 0.1)
+                        for sound_type in self.zombie_moan_sounds:
+                            sound_type.set_volume(sound_type.get_volume() + 0.1)
+                        for sound_type in self.player_hit_sounds:
+                            sound_type.set_volume(sound_type.get_volume() + 0.1)
+                        for sound_type in self.zombie_hit_sounds:
+                            sound_type.set_volume(sound_type.get_volume() + 0.1)
+                        pg.mixer.music.set_volume(pg.mixer.music.get_volume() + 0.1)
+                        print(pg.mixer.music.get_volume())
 
-            if self.current_screen == "Start Screen" and self.button_start_quit.collidepoint((mx, my)):
-                if self.click_test:
-                    self.quit()
-        
-            if self.current_screen == "Options Screen" and self.button_options_return.collidepoint((mx, my)):
-                if self.click_test:
-                    g.show_start_screen()
-
-            if self.current_screen == "Options Screen" and self.button_options_volumeup.collidepoint((mx, my)):
-                if self.click_test:
-                    for sound_type in self.weapon_sounds:
-                        self.weapon_sounds[sound_type][0].set_volume(self.weapon_sounds[sound_type][0].get_volume() + 0.1)
-                    for sound_type in self.effects_sounds:
-                        self.effects_sounds[sound_type].set_volume(self.effects_sounds[sound_type].get_volume() + 0.1)
-                    for sound_type in self.zombie_moan_sounds:
-                        sound_type.set_volume(sound_type.get_volume() + 0.1)
-                    for sound_type in self.player_hit_sounds:
-                        sound_type.set_volume(sound_type.get_volume() + 0.1)
-                    for sound_type in self.zombie_hit_sounds:
-                        sound_type.set_volume(sound_type.get_volume() + 0.1)
-                    pg.mixer.music.set_volume(pg.mixer.music.get_volume() + 0.1)
-                    print(pg.mixer.music.get_volume())
-
-            if self.current_screen == "Options Screen" and self.button_options_volumedown.collidepoint((mx, my)):
-                if self.click_test:
-                    for sound_type in self.weapon_sounds:
-                        self.weapon_sounds[sound_type][0].set_volume(self.weapon_sounds[sound_type][0].get_volume() - 0.1)
-                    for sound_type in self.effects_sounds:
-                        self.effects_sounds[sound_type].set_volume(self.effects_sounds[sound_type].get_volume() - 0.1)
-                    for sound_type in self.zombie_moan_sounds:
-                        sound_type.set_volume(sound_type.get_volume() - 0.1)
-                    for sound_type in self.player_hit_sounds:
-                        sound_type.set_volume(sound_type.get_volume() - 0.3)
-                    for sound_type in self.zombie_hit_sounds:
-                        sound_type.set_volume(sound_type.get_volume() - 0.3)
-                    pg.mixer.music.set_volume(pg.mixer.music.get_volume() - 0.1)
-                    print(pg.mixer.music.get_volume())
+                    elif self.button_options_volumedown.collidepoint((mx, my)):
+                        for sound_type in self.weapon_sounds:
+                            self.weapon_sounds[sound_type][0].set_volume(self.weapon_sounds[sound_type][0].get_volume() - 0.1)
+                        for sound_type in self.effects_sounds:
+                            self.effects_sounds[sound_type].set_volume(self.effects_sounds[sound_type].get_volume() - 0.1)
+                        for sound_type in self.zombie_moan_sounds:
+                            sound_type.set_volume(sound_type.get_volume() - 0.1)
+                        for sound_type in self.player_hit_sounds:
+                            sound_type.set_volume(sound_type.get_volume() - 0.3)
+                        for sound_type in self.zombie_hit_sounds:
+                            sound_type.set_volume(sound_type.get_volume() - 0.3)
+                        pg.mixer.music.set_volume(pg.mixer.music.get_volume() - 0.1)
+                        print(pg.mixer.music.get_volume())
             self.click_test = False
 
 # create the game object

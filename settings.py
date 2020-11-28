@@ -16,12 +16,13 @@ CYAN = (0, 255, 255)
 WIDTH = 1024   # 16 * 64 or 32 * 32 or 64 * 16
 HEIGHT = 768  # 16 * 48 or 32 * 24 or 64 * 12
 FPS = 60
+
 TITLE = "GUNDALF THE WIZARD"
 BGCOLOR = BROWN
 mainscreen = 'TITLESCREEN2.png'
 optionscreen = 'OPTIONSCREEN1.png'
 gameoverscreen = 'GAMEOVER2.png'
-pausescreen = 'pausescreen.png'
+pausescreen = 'pausescreen2.png'
 victoryscreen = 'VICTORY.png'
 
 TILESIZE = 64
@@ -63,7 +64,8 @@ WEAPONS['staff'] = {'bullet_speed': 1,
                       'spread': 1,
                       'damage': 5,
                       'bullet_size': 'lg',
-                      'bullet_count': 50}
+                      'bullet_count': 50,
+                      'bullets': 10}
 
 # Mob settings
 
@@ -83,7 +85,7 @@ SPLAT = 'splat green.png'
 FLASH_DURATION = 50
 DAMAGE_ALPHA = [i for i in range(0, 255, 55)]
 NIGHT_COLOR = (20, 20, 20)
-LIGHT_RADIUS = (500, 500)
+LIGHT_RADIUS = (1100, 1100)
 LIGHT_MASK = "light_350_soft.png"
 
 # Layers
@@ -95,13 +97,13 @@ EFFECTS_LAYER = 4
 ITEMS_LAYER = 1
 
 # Items
-ITEM_IMAGES = {'health': 'HEALTH.png',
+ITEM_IMAGES = {'pistol' : 'SHOTGUN.png',
+               'health': 'HEALTH.png',
                'shotgun': 'SHOTGUN.png',
                'staff': 'staff.png'}
 HEALTH_PACK_AMOUNT = 20
 BOB_RANGE = 10
 BOB_SPEED = 0.3
-
 # Sounds
 BG_MUSIC = 'espionage.ogg'
 PLAYER_HIT_SOUNDS = ['pain/8.wav', 'pain/9.wav', 'pain/10.wav', 'pain/11.wav']
