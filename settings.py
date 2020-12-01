@@ -48,6 +48,8 @@ WEAPONS['pistol'] = {'bullet_speed': 500,
                      'damage': 10,
                      'bullet_size': 'lg',
                      'bullet_count': 1}
+                     
+                     
 WEAPONS['shotgun'] = {'bullet_speed': 400,
                       'bullet_lifetime': 500,
                       'rate': 900,
@@ -56,17 +58,21 @@ WEAPONS['shotgun'] = {'bullet_speed': 400,
                       'damage': 5,
                       'bullet_size': 'sm',
                       'bullet_count': 20}
+                     
 
 WEAPONS['staff'] = {'bullet_speed': 1,
-                      'bullet_lifetime': 600,
+                      'bullet_lifetime': 1500,
                       'rate': 900,
                       'kickback': 1,
                       'spread': 1,
                       'damage': 5,
                       'bullet_size': 'lg',
-                      'bullet_count': 50,
-                      'bullets': 10}
+                      'bullet_count': 50}
+                      
 
+spriteweapon = {'pistol' : 'PISTOLFRAME.png',
+                'shotgun': 'SHOTGUNBIG.png',
+                'staff' : 'staff.png'}
 # Mob settings
 
 MOB_IMG = 'ZOMBIE.png'

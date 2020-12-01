@@ -3,6 +3,7 @@ import sys
 from random import choice, random
 from os import path
 import settings
+import pickle
 from sprites import *
 from tilemap import *
 
@@ -25,7 +26,6 @@ def draw_player_health(surf, x, y, pct):
     pg.draw.rect(surf, col, fill_rect)
     pg.draw.rect(surf, WHITE, outline_rect, 2)
 
-
 class Game:
     def __init__(self):
         pg.mixer.pre_init(44100, -16, 4, 2048)
@@ -36,20 +36,18 @@ class Game:
         self.load_data()
         self.load_menus()
 
-    def draw_gun(self):
-        game_folder = path.dirname(__file__)
-        img_folder = path.join(game_folder, 'img')
-        self.weapon = pg.image.load(path.join(img_folder, ITEM_IMAGES[self.player.weapon])).convert_alpha()
-        self.screen.blit(self.weapon,(896,640))
-        self.retangulo = pg.Rect(896,640,128,128)
-        pg.draw.rect(self.screen,(255,0,0),self.retangulo,1)
-        pg.display.flip()
-
     def draw_text(self, text, font_name, size, color, x, y, align="topleft"):
         font = pg.font.Font(font_name, size)
         text_surface = font.render(text, True, color)
         text_rect = text_surface.get_rect(**{align: (x, y)})
         self.screen.blit(text_surface, text_rect)
+
+    def draw_gun(self):
+        game_folder = path.dirname(__file__)
+        img_folder = path.join(game_folder, 'img')
+        self.weapon = pg.image.load(path.join(img_folder, spriteweapon[self.player.weapon])).convert_alpha()
+        self.screen.blit(self.weapon,(896,640))
+        pg.display.flip()
 
     def mousepos_worldpos(self,mouse_pos):
         cam_pos = self.camera.camera.topleft
@@ -126,9 +124,11 @@ class Game:
         self.all_sprites = pg.sprite.LayeredUpdates()
         self.walls = pg.sprite.Group()
         self.mobs = pg.sprite.Group()
+        self.mobslist = []
         self.bullets = pg.sprite.Group()
         self.items = pg.sprite.Group()
-        self.map = TiledMap(path.join(self.map_folder, 'TesteFase1.tmx'))
+        self.itemslist = []
+        self.map = TiledMap(path.join(self.map_folder, 'fase1.tmx'))
         self.map_img = self.map.make_map()
         self.map.rect = self.map_img.get_rect()
         for tile_object in self.map.tmxdata.objects:
@@ -137,11 +137,14 @@ class Game:
             if tile_object.name == 'player':
                 self.player = Player(self, obj_center.x, obj_center.y)  
             if tile_object.name == 'zombie':
-                Mob(self, obj_center.x, obj_center.y)
+                M=Mob(self, obj_center.x, obj_center.y)
+                self.mobslist.append(M)
             if tile_object.name == 'wall':
                 Obstacle(self, tile_object.x, tile_object.y, tile_object.width, tile_object.height)
             if tile_object.name in ['health', 'shotgun','staff']:
-                Item(self, obj_center, tile_object.name)
+                I=Item(self, obj_center, tile_object.name)
+                self.itemslist.append(I)
+
 
         self.camera = Camera(self.map.width, self.map.height)
         self.draw_debug = False
@@ -180,14 +183,17 @@ class Game:
         hits = pg.sprite.spritecollide(self.player, self.items, False)
         for hit in hits:
             if hit.type == 'health' and self.player.health < PLAYER_HEALTH:
+                self.itemslist.remove(hit)
                 hit.kill()
                 self.effects_sounds['health_up'].play()
                 self.player.add_health(HEALTH_PACK_AMOUNT)
             if hit.type == 'shotgun':
+                self.itemslist.remove(hit)
                 hit.kill()
                 self.effects_sounds['gun_pickup'].play()
                 self.player.weapon = 'shotgun'
             if hit.type == 'staff':
+                self.itemslist.remove(hit)
                 hit.kill()
                 self.effects_sounds['gun_pickup'].play()
                 self.player.weapon = 'staff'
@@ -209,6 +215,8 @@ class Game:
             # hit.health -= WEAPONS[self.player.weapon]['damage'] * len(hits[hit])
             for bullet in hits[mob]:
                 mob.health -= bullet.damage
+                if mob.health <= 0 and mob in self.mobslist:
+                    self.mobslist.remove(mob)
             mob.vel = vec(0, 0)
 
     def render_fog(self):
@@ -262,6 +270,50 @@ class Game:
                     self.click = True
                 if event.button == 1:
                     self.click = False
+
+    def save(self):
+        self.mobspos=[]
+        self.itemspos=[]
+        for i in range(len(self.mobslist)):
+            self.mobspos.append(self.mobslist[i].pos)
+        for item in self.itemslist:
+            self.itemspos.append([item.pos,item.type])
+        with open("savefile","wb") as f:
+            data = [[self.player.health,self.player.weapon,self.player.rect.center],self.mobspos,self.itemspos]
+            pickle.dump(data,f)
+
+    def load(self):
+        with open("savefile","rb") as f:
+            loaddata = pickle.load(f)
+        self.all_sprites = pg.sprite.LayeredUpdates()
+        self.walls = pg.sprite.Group()
+        self.mobs = pg.sprite.Group()
+        self.mobslist = []
+        self.bullets = pg.sprite.Group()
+        self.items = pg.sprite.Group()
+        self.itemslist = []
+        self.map = TiledMap(path.join(self.map_folder, 'TesteFase1.tmx'))
+        self.map_img = self.map.make_map()
+        self.map.rect = self.map_img.get_rect()
+
+        self.player = Player(self, loaddata[0][2][0], loaddata[0][2][1])
+        self.player.health = loaddata[0][0]
+        self.player.weapon = loaddata[0][1]
+        for zombie in loaddata[1]:
+            M=Mob(self, zombie[0], zombie[1])
+            self.mobslist.append(M)
+        for item in loaddata[2]:
+            I=Item(self, item[0], item[1])
+            self.itemslist.append(I)
+        for tile_object in self.map.tmxdata.objects:
+            if tile_object.name == 'wall':
+                Obstacle(self, tile_object.x, tile_object.y, tile_object.width, tile_object.height)
+
+        self.camera = Camera(self.map.width, self.map.height)
+        self.draw_debug = False
+        self.paused = False
+        self.night = False
+        self.effects_sounds['level_start'].play()
 
     def show_pause_screen(self):
         self.paused = True
@@ -317,7 +369,10 @@ class Game:
         self.button_options_return = pg.Rect(336, 480, 385, 57)
         self.button_options_volumeup = pg.Rect(744, 80, 40, 72)
         self.button_options_volumedown = pg.Rect(272, 80, 40, 72)
+        # self.button_volume = pg.
         pg.draw.rect(self.screen, (0, 0, 0), self.button_options_return,-1)
+        # pg.draw.rect(self.screen, (255, 0, 0), 
+        
         pg.draw.rect(self.screen, (255, 0, 0), self.button_options_volumeup,-1)
         pg.draw.rect(self.screen, (255, 0, 0), self.button_options_volumedown,-1)
         pg.display.flip()
@@ -350,8 +405,8 @@ class Game:
                         waiting = False
                     
                     elif self.button_pause_save.collidepoint((mx, my)):
-                        pass 
-
+                        g.save()
+                        print('teste')
                     elif self.button_pause_quit.collidepoint((mx, my)):
                         g.show_start_screen()
                         
@@ -380,7 +435,9 @@ class Game:
                         g.options()
 
                     elif self.button_start_load.collidepoint((mx, my)):
-                        pass
+                        g.load()
+                        g.run()
+                        print('teste')
 
                     elif self.button_start_quit.collidepoint((mx, my)):
                         self.quit()
@@ -392,31 +449,46 @@ class Game:
                     elif self.button_options_volumeup.collidepoint((mx, my)):
                         for sound_type in self.weapon_sounds:
                             self.weapon_sounds[sound_type][0].set_volume(self.weapon_sounds[sound_type][0].get_volume() + 0.1)
+                            print(self.weapon_sounds[sound_type][0].get_volume())
                         for sound_type in self.effects_sounds:
                             self.effects_sounds[sound_type].set_volume(self.effects_sounds[sound_type].get_volume() + 0.1)
+                            print(self.effects_sounds[sound_type].get_volume())
                         for sound_type in self.zombie_moan_sounds:
                             sound_type.set_volume(sound_type.get_volume() + 0.1)
+                            print(sound_type.get_volume())
                         for sound_type in self.player_hit_sounds:
                             sound_type.set_volume(sound_type.get_volume() + 0.1)
+                            print(sound_type.get_volume())
                         for sound_type in self.zombie_hit_sounds:
                             sound_type.set_volume(sound_type.get_volume() + 0.1)
+                            print(sound_type.get_volume())
                         pg.mixer.music.set_volume(pg.mixer.music.get_volume() + 0.1)
                         print(pg.mixer.music.get_volume())
+                        
 
                     elif self.button_options_volumedown.collidepoint((mx, my)):
                         for sound_type in self.weapon_sounds:
                             self.weapon_sounds[sound_type][0].set_volume(self.weapon_sounds[sound_type][0].get_volume() - 0.1)
+                            print(self.weapon_sounds[sound_type][0].get_volume())
                         for sound_type in self.effects_sounds:
                             self.effects_sounds[sound_type].set_volume(self.effects_sounds[sound_type].get_volume() - 0.1)
+                            print(self.effects_sounds[sound_type].get_volume())
                         for sound_type in self.zombie_moan_sounds:
                             sound_type.set_volume(sound_type.get_volume() - 0.1)
+                            print(sound_type.get_volume())
                         for sound_type in self.player_hit_sounds:
-                            sound_type.set_volume(sound_type.get_volume() - 0.3)
+                            sound_type.set_volume(sound_type.get_volume() - 0.1)
+                            print(sound_type.get_volume())
                         for sound_type in self.zombie_hit_sounds:
-                            sound_type.set_volume(sound_type.get_volume() - 0.3)
+                            sound_type.set_volume(sound_type.get_volume() - 0.1)
+                            print(sound_type.get_volume())
                         pg.mixer.music.set_volume(pg.mixer.music.get_volume() - 0.1)
                         print(pg.mixer.music.get_volume())
+                       
+                        
+    
             self.click_test = False
+
 
 # create the game object
 g = Game()
