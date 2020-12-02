@@ -9,7 +9,7 @@ from tilemap import *
 
 # HUD functions
 
-def desenhar_vida(surf, x, y, pct):
+def draw_player_health(surf, x, y, pct):
     if pct < 0:
         pct = 0
     BAR_LENGTH = 100
@@ -141,7 +141,7 @@ class Game:
                 self.mobslist.append(M)
             if tile_object.name == 'wall':
                 Obstacle(self, tile_object.x, tile_object.y, tile_object.width, tile_object.height)
-            if tile_object.name in ['health', 'shotgun', 'staff']:
+            if tile_object.name in ['health', 'shotgun','staff']:
                 I=Item(self, obj_center, tile_object.name)
                 self.itemslist.append(I)
 
@@ -245,7 +245,7 @@ class Game:
         if self.night:
             self.render_fog()
         # HUD functions
-        desenhar_vida(self.screen, 10, 10, self.player.health / PLAYER_HEALTH)
+        draw_player_health(self.screen, 10, 10, self.player.health / PLAYER_HEALTH)
         self.draw_text('Zombies: {}'.format(len(self.mobs)), self.hud_font, 30, WHITE,
                        WIDTH - 10, 10, align="topright")
         #comeco
