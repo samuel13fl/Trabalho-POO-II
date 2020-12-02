@@ -9,23 +9,6 @@ from tilemap import *
 
 # HUD functions
 
-def draw_player_health(surf, x, y, pct):
-    if pct < 0:
-        pct = 0
-    BAR_LENGTH = 100
-    BAR_HEIGHT = 20
-    fill = pct * BAR_LENGTH
-    outline_rect = pg.Rect(x, y, BAR_LENGTH, BAR_HEIGHT)
-    fill_rect = pg.Rect(x, y, fill, BAR_HEIGHT)
-    if pct > 0.6:
-        col = GREEN
-    elif pct > 0.3:
-        col = YELLOW
-    else:
-        col = RED
-    pg.draw.rect(surf, col, fill_rect)
-    pg.draw.rect(surf, WHITE, outline_rect, 2)
-
 class Game:
     def __init__(self):
         pg.mixer.pre_init(44100, -16, 4, 2048)
@@ -42,12 +25,26 @@ class Game:
         text_rect = text_surface.get_rect(**{align: (x, y)})
         self.screen.blit(text_surface, text_rect)
 
+    def draw_player_health(self, pct):
+        game_folder = path.dirname(__file__)
+        img_folder = path.join(game_folder, 'img')
+        if pct < 0:
+            pct = 0
+        elif pct == 1:
+            health = pg.image.load(path.join(img_folder, 'HEARTFULL.png')).convert_alpha()
+        elif pct == 0.75:
+            health = pg.image.load(path.join(img_folder, 'HEART3.png')).convert_alpha()
+        elif pct == 0.50:
+            health = pg.image.load(path.join(img_folder, 'HEART2.png')).convert_alpha()
+        elif pct <= 0.25:
+            health = pg.image.load(path.join(img_folder, 'HEART1.png')).convert_alpha()
+        self.screen.blit(health, (10, 10))
+
     def draw_gun(self):
         game_folder = path.dirname(__file__)
         img_folder = path.join(game_folder, 'img')
-        self.weapon = pg.image.load(path.join(img_folder, spriteweapon[self.player.weapon])).convert_alpha()
-        self.screen.blit(self.weapon,(896,640))
-        pg.display.flip()
+        weapon = pg.image.load(path.join(img_folder, spriteweapon[self.player.weapon])).convert_alpha()
+        self.screen.blit(weapon, (832, 640))
 
     def mousepos_worldpos(self,mouse_pos):
         cam_pos = self.camera.camera.topleft
@@ -105,12 +102,10 @@ class Game:
             self.weapon_sounds[weapon] = []
             for snd in WEAPON_SOUNDS[weapon]:
                 s = pg.mixer.Sound(path.join(snd_folder, snd))
-                s.set_volume(0.3)
                 self.weapon_sounds[weapon].append(s)
         self.zombie_moan_sounds = []
         for snd in ZOMBIE_MOAN_SOUNDS:
             s = pg.mixer.Sound(path.join(snd_folder, snd))
-            s.set_volume(0.2)
             self.zombie_moan_sounds.append(s)
         self.player_hit_sounds = []
         for snd in PLAYER_HIT_SOUNDS:
@@ -245,11 +240,11 @@ class Game:
         if self.night:
             self.render_fog()
         # HUD functions
-        draw_player_health(self.screen, 10, 10, self.player.health / PLAYER_HEALTH)
         self.draw_text('Zombies: {}'.format(len(self.mobs)), self.hud_font, 30, WHITE,
                        WIDTH - 10, 10, align="topright")
         #comeco
         self.draw_gun()
+        self.draw_player_health(self.player.health / PLAYER_HEALTH)
         pg.display.flip()
 
     def events(self):

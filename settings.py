@@ -79,7 +79,7 @@ MOB_IMG = 'ZOMBIE.png'
 MOB_SPEEDS = [150, 100, 75, 125]
 MOB_HIT_RECT = pg.Rect(0, 0, 30, 30)
 MOB_HEALTH = 100
-MOB_DAMAGE = 5
+MOB_DAMAGE = 25
 MOB_KNOCKBACK = 20
 AVOID_RADIUS = 50
 DETECT_RADIUS = 500
@@ -107,7 +107,7 @@ ITEM_IMAGES = {'pistol' : 'SHOTGUN.png',
                'health': 'HEALTH.png',
                'shotgun': 'SHOTGUN.png',
                'staff': 'staff.png'}
-HEALTH_PACK_AMOUNT = 20
+HEALTH_PACK_AMOUNT = 50
 BOB_RANGE = 10
 BOB_SPEED = 0.3
 # Sounds
