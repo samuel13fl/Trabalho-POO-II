@@ -93,36 +93,36 @@ class Game:
         self.light_mask = pg.transform.scale(self.light_mask, LIGHT_RADIUS)
         self.light_rect = self.light_mask.get_rect()
         # Sound loading
+        self.volume = 1
         pg.mixer.music.load(path.join(music_folder, BG_MUSIC))
-        pg.mixer.music.set_volume(1)
+        pg.mixer.music.set_volume(self.volume)
         self.effects_sounds = {}
         for type in EFFECTS_SOUNDS:
             s = pg.mixer.Sound(path.join(snd_folder, EFFECTS_SOUNDS[type]))
-            s.set_volume(1)
+            s.set_volume(self.volume)
             self.effects_sounds[type] = s
         self.weapon_sounds = {}
         for weapon in WEAPON_SOUNDS:
             self.weapon_sounds[weapon] = []
             for snd in WEAPON_SOUNDS[weapon]:
                 s = pg.mixer.Sound(path.join(snd_folder, snd))
-                s.set_volume(1)
+                s.set_volume(self.volume)
                 self.weapon_sounds[weapon].append(s)
         self.zombie_moan_sounds = []
         for snd in ZOMBIE_MOAN_SOUNDS:
             s = pg.mixer.Sound(path.join(snd_folder, snd))
-            s.set_volume(1)
+            s.set_volume(self.volume)
             self.zombie_moan_sounds.append(s)
         self.player_hit_sounds = []
         for snd in PLAYER_HIT_SOUNDS:
             s = pg.mixer.Sound(path.join(snd_folder, snd))
-            s.set_volume(1)
+            s.set_volume(self.volume)
             self.player_hit_sounds.append(s)
         self.zombie_hit_sounds = []
         for snd in ZOMBIE_HIT_SOUNDS:
             s = pg.mixer.Sound(path.join(snd_folder, snd))
-            s.set_volume(1)
+            s.set_volume(self.volume)
             self.zombie_hit_sounds.append(s)
-        self.volume = 1
 
     def new(self):
         # initialize all variables and do all the setup for a new game
