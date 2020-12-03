@@ -277,6 +277,34 @@ class Game:
         pg.mixer.music.set_volume(self.volume)
         print(pg.mixer.music.get_volume())
 
+    def draw_volume(self):
+        game_folder = path.dirname(__file__)
+        img_folder = path.join(game_folder, 'img')
+        if self.volume == 1:
+            volume = pg.image.load(path.join(img_folder, 'NUMBER100.png')).convert_alpha()
+        elif 1 > self.volume >= 0.9:
+            volume = pg.image.load(path.join(img_folder, 'NUMBER90.png')).convert_alpha()
+        elif 0.9 > self.volume >= 0.8:
+            volume = pg.image.load(path.join(img_folder, 'NUMBER80.png')).convert_alpha()
+        elif 0.8 > self.volume >= 0.7:
+            volume = pg.image.load(path.join(img_folder, 'NUMBER70.png')).convert_alpha()
+        elif 0.7 > self.volume >= 0.6:
+            volume = pg.image.load(path.join(img_folder, 'NUMBER60.png')).convert_alpha()
+        elif 0.6 > self.volume >= 0.5:
+            volume = pg.image.load(path.join(img_folder, 'NUMBER50.png')).convert_alpha()
+        elif 0.5 > self.volume >= 0.4:
+            volume = pg.image.load(path.join(img_folder, 'NUMBER40.png')).convert_alpha()
+        elif 0.4 > self.volume >= 0.3:
+            volume = pg.image.load(path.join(img_folder, 'NUMBER30.png')).convert_alpha()
+        elif 0.3 > self.volume >= 0.2:
+            volume = pg.image.load(path.join(img_folder, 'NUMBER20.png')).convert_alpha()
+        elif 0.2 > self.volume >= 0.1:
+            volume = pg.image.load(path.join(img_folder, 'NUMBER10.png')).convert_alpha()
+        else:
+            volume = pg.image.load(path.join(img_folder, 'NUMBER10.png')).convert_alpha()
+        self.screen.blit(volume, (384, 180))
+        pg.display.flip()
+
     def events(self):
         # catch all events here
         for event in pg.event.get():
@@ -394,12 +422,10 @@ class Game:
         self.button_options_return = pg.Rect(336, 480, 385, 57)
         self.button_options_volumeup = pg.Rect(744, 80, 40, 72)
         self.button_options_volumedown = pg.Rect(272, 80, 40, 72)
-        # self.button_volume = pg.
         pg.draw.rect(self.screen, (0, 0, 0), self.button_options_return,-1)
-        # pg.draw.rect(self.screen, (255, 0, 0), 
-
         pg.draw.rect(self.screen, (255, 0, 0), self.button_options_volumeup,-1)
         pg.draw.rect(self.screen, (255, 0, 0), self.button_options_volumedown,-1)
+        self.draw_volume()
         pg.display.flip()
         self.wait_for_key()
 
@@ -478,6 +504,8 @@ class Game:
                             self.volume += 0.1
 
                         self.change_volume()
+                        self.screen.blit(self.optionscreen, (0, 0))
+                        self.draw_volume()
 
                     elif self.button_options_volumedown.collidepoint((mx, my)):
                         if self.volume <= 0:
@@ -486,6 +514,8 @@ class Game:
                             self.volume -= 0.1
 
                         self.change_volume()
+                        self.screen.blit(self.optionscreen, (0, 0))
+                        self.draw_volume()
 
             self.click_test = False
 
