@@ -287,7 +287,7 @@ class Game:
         self.bullets = pg.sprite.Group()
         self.items = pg.sprite.Group()
         self.itemslist = []
-        self.map = TiledMap(path.join(self.map_folder, 'TesteFase1.tmx'))
+        self.map = TiledMap(path.join(self.map_folder, 'Fase1.tmx'))
         self.map_img = self.map.make_map()
         self.map.rect = self.map_img.get_rect()
 
