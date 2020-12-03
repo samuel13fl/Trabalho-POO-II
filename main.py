@@ -301,8 +301,8 @@ class Game:
         elif 0.2 > self.volume >= 0.1:
             volume = pg.image.load(path.join(img_folder, 'NUMBER10.png')).convert_alpha()
         else:
-            volume = pg.image.load(path.join(img_folder, 'NUMBER10.png')).convert_alpha()
-        self.screen.blit(volume, (384, 180))
+            volume = pg.image.load(path.join(img_folder, 'NUMBER0.png')).convert_alpha()
+        self.screen.blit(volume, (140, 140))
         pg.display.flip()
 
     def events(self):
