@@ -61,7 +61,7 @@ class Game:
         self.optionscreen = pg.image.load(path.join(img_folder, settings.optionscreen)).convert_alpha()
         self.pausescreen = pg.image.load(path.join(img_folder, settings.pausescreen)).convert_alpha()
         self.victoryscreen = pg.image.load(path.join(img_folder, settings.victoryscreen)).convert_alpha()
-    
+
     def load_data(self):
         game_folder = path.dirname(__file__)
         img_folder = path.join(game_folder, 'img')
@@ -94,25 +94,35 @@ class Game:
         self.light_rect = self.light_mask.get_rect()
         # Sound loading
         pg.mixer.music.load(path.join(music_folder, BG_MUSIC))
+        pg.mixer.music.set_volume(1)
         self.effects_sounds = {}
         for type in EFFECTS_SOUNDS:
-            self.effects_sounds[type] = pg.mixer.Sound(path.join(snd_folder, EFFECTS_SOUNDS[type]))
+            s = pg.mixer.Sound(path.join(snd_folder, EFFECTS_SOUNDS[type]))
+            s.set_volume(1)
+            self.effects_sounds[type] = s
         self.weapon_sounds = {}
         for weapon in WEAPON_SOUNDS:
             self.weapon_sounds[weapon] = []
             for snd in WEAPON_SOUNDS[weapon]:
                 s = pg.mixer.Sound(path.join(snd_folder, snd))
+                s.set_volume(1)
                 self.weapon_sounds[weapon].append(s)
         self.zombie_moan_sounds = []
         for snd in ZOMBIE_MOAN_SOUNDS:
             s = pg.mixer.Sound(path.join(snd_folder, snd))
+            s.set_volume(1)
             self.zombie_moan_sounds.append(s)
         self.player_hit_sounds = []
         for snd in PLAYER_HIT_SOUNDS:
-            self.player_hit_sounds.append(pg.mixer.Sound(path.join(snd_folder, snd)))
+            s = pg.mixer.Sound(path.join(snd_folder, snd))
+            s.set_volume(1)
+            self.player_hit_sounds.append(s)
         self.zombie_hit_sounds = []
         for snd in ZOMBIE_HIT_SOUNDS:
-            self.zombie_hit_sounds.append(pg.mixer.Sound(path.join(snd_folder, snd)))
+            s = pg.mixer.Sound(path.join(snd_folder, snd))
+            s.set_volume(1)
+            self.zombie_hit_sounds.append(s)
+        self.volume = 1
 
     def new(self):
         # initialize all variables and do all the setup for a new game
@@ -130,7 +140,7 @@ class Game:
             obj_center = vec(tile_object.x + tile_object.width/2, tile_object.y + tile_object.height/2)
 
             if tile_object.name == 'player':
-                self.player = Player(self, obj_center.x, obj_center.y)  
+                self.player = Player(self, obj_center.x, obj_center.y)
             if tile_object.name == 'zombie':
                 M=Mob(self, obj_center.x, obj_center.y)
                 self.mobslist.append(M)
@@ -247,6 +257,26 @@ class Game:
         self.draw_player_health(self.player.health / PLAYER_HEALTH)
         pg.display.flip()
 
+    def change_volume(self):
+        print(f'volume: {self.volume}')
+        for sound_type in self.weapon_sounds:
+            self.weapon_sounds[sound_type][0].set_volume(self.volume)
+            print(self.weapon_sounds[sound_type][0].get_volume())
+        for sound_type in self.effects_sounds:
+            self.effects_sounds[sound_type].set_volume(self.volume)
+            print(self.effects_sounds[sound_type].get_volume())
+        for sound_type in self.zombie_moan_sounds:
+            sound_type.set_volume(self.volume)
+            print(sound_type.get_volume())
+        for sound_type in self.player_hit_sounds:
+            sound_type.set_volume(self.volume)
+            print(sound_type.get_volume())
+        for sound_type in self.zombie_hit_sounds:
+            sound_type.set_volume(self.volume)
+            print(sound_type.get_volume())
+        pg.mixer.music.set_volume(self.volume)
+        print(pg.mixer.music.get_volume())
+
     def events(self):
         # catch all events here
         for event in pg.event.get():
@@ -256,10 +286,10 @@ class Game:
                 if event.key == pg.K_h:
                     self.draw_debug = not self.draw_debug
                 if event.key == pg.K_ESCAPE:
-                    self.show_pause_screen() 
+                    self.show_pause_screen()
                 if event.key == pg.K_n:
                     self.night = not self.night
-               
+
             if event.type == pg.MOUSEBUTTONDOWN:
                 if event.button == 0:
                     self.click = True
@@ -316,7 +346,7 @@ class Game:
         self.screen.blit(self.pausescreen, (0, 0))
         self.button_pause_back = pg.Rect(416 , 323, 192, 28)
         self.button_pause_save = pg.Rect(448, 436, 128, 28)
-        self.button_pause_quit = pg.Rect(448, 565, 128, 28) 
+        self.button_pause_quit = pg.Rect(448, 565, 128, 28)
         pg.draw.rect(self.screen, (255, 0, 0), self.button_pause_back,-1)
         pg.draw.rect(self.screen, (255, 0, 0), self.button_pause_save,-1)
         pg.draw.rect(self.screen, (255, 0, 0), self.button_pause_quit,-1)
@@ -337,7 +367,7 @@ class Game:
         pg.display.flip()
         pg.mixer.music.pause()
         self.wait_for_key()
-    
+
     def show_victoryscreen(self):
         self.current_screen = "victoryscreen"
         self.screen.blit(self.victoryscreen,(0,0))
@@ -367,7 +397,7 @@ class Game:
         # self.button_volume = pg.
         pg.draw.rect(self.screen, (0, 0, 0), self.button_options_return,-1)
         # pg.draw.rect(self.screen, (255, 0, 0), 
-        
+
         pg.draw.rect(self.screen, (255, 0, 0), self.button_options_volumeup,-1)
         pg.draw.rect(self.screen, (255, 0, 0), self.button_options_volumedown,-1)
         pg.display.flip()
@@ -398,18 +428,18 @@ class Game:
                         self.paused = False
                         self.current_screen = ''
                         waiting = False
-                    
+
                     elif self.button_pause_save.collidepoint((mx, my)):
                         g.save()
                         print('teste')
                     elif self.button_pause_quit.collidepoint((mx, my)):
                         g.show_start_screen()
-                        
+
                 elif self.current_screen == "victoryscreen":
                     if self.button_go_restart.collidepoint((mx, my)):
                         g.new()
                         g.run()
-                        
+
                     elif self.button_go_quit.collidepoint((mx, my)):
                         g.show_start_screen()
 
@@ -417,7 +447,7 @@ class Game:
                     if self.button_go_restart.collidepoint((mx, my)):
                         g.new()
                         g.run()
-                    
+
                     elif self.button_go_quit.collidepoint((mx, my)):
                         g.show_start_screen()
 
@@ -436,52 +466,27 @@ class Game:
 
                     elif self.button_start_quit.collidepoint((mx, my)):
                         self.quit()
-            
+
                 elif self.current_screen == "Options Screen":
                     if self.button_options_return.collidepoint((mx, my)):
                         g.show_start_screen()
 
                     elif self.button_options_volumeup.collidepoint((mx, my)):
-                        for sound_type in self.weapon_sounds:
-                            self.weapon_sounds[sound_type][0].set_volume(self.weapon_sounds[sound_type][0].get_volume() + 0.1)
-                            print(self.weapon_sounds[sound_type][0].get_volume())
-                        for sound_type in self.effects_sounds:
-                            self.effects_sounds[sound_type].set_volume(self.effects_sounds[sound_type].get_volume() + 0.1)
-                            print(self.effects_sounds[sound_type].get_volume())
-                        for sound_type in self.zombie_moan_sounds:
-                            sound_type.set_volume(sound_type.get_volume() + 0.1)
-                            print(sound_type.get_volume())
-                        for sound_type in self.player_hit_sounds:
-                            sound_type.set_volume(sound_type.get_volume() + 0.1)
-                            print(sound_type.get_volume())
-                        for sound_type in self.zombie_hit_sounds:
-                            sound_type.set_volume(sound_type.get_volume() + 0.1)
-                            print(sound_type.get_volume())
-                        pg.mixer.music.set_volume(pg.mixer.music.get_volume() + 0.1)
-                        print(pg.mixer.music.get_volume())
-                        
+                        if self.volume >= 1:
+                            self.volume = 1
+                        else:
+                            self.volume += 0.1
+
+                        self.change_volume()
 
                     elif self.button_options_volumedown.collidepoint((mx, my)):
-                        for sound_type in self.weapon_sounds:
-                            self.weapon_sounds[sound_type][0].set_volume(self.weapon_sounds[sound_type][0].get_volume() - 0.1)
-                            print(self.weapon_sounds[sound_type][0].get_volume())
-                        for sound_type in self.effects_sounds:
-                            self.effects_sounds[sound_type].set_volume(self.effects_sounds[sound_type].get_volume() - 0.1)
-                            print(self.effects_sounds[sound_type].get_volume())
-                        for sound_type in self.zombie_moan_sounds:
-                            sound_type.set_volume(sound_type.get_volume() - 0.1)
-                            print(sound_type.get_volume())
-                        for sound_type in self.player_hit_sounds:
-                            sound_type.set_volume(sound_type.get_volume() - 0.1)
-                            print(sound_type.get_volume())
-                        for sound_type in self.zombie_hit_sounds:
-                            sound_type.set_volume(sound_type.get_volume() - 0.1)
-                            print(sound_type.get_volume())
-                        pg.mixer.music.set_volume(pg.mixer.music.get_volume() - 0.1)
-                        print(pg.mixer.music.get_volume())
-                       
-                        
-    
+                        if self.volume <= 0:
+                            self.volume = 0
+                        else:
+                            self.volume -= 0.1
+
+                        self.change_volume()
+
             self.click_test = False
 
 
