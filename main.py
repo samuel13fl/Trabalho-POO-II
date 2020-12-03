@@ -240,7 +240,7 @@ class Game:
         if self.night:
             self.render_fog()
         # HUD functions
-        self.draw_text('Zombies: {}'.format(len(self.mobs)), self.hud_font, 30, WHITE,
+        self.draw_text('Enemies: {}'.format(len(self.mobs)), self.hud_font, 30, WHITE,
                        WIDTH - 10, 10, align="topright")
         #comeco
         self.draw_gun()
