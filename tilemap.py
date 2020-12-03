@@ -55,9 +55,8 @@ class Camera:
         x = -target.rect.centerx + int(WIDTH / 2)
         y = -target.rect.centery + int(HEIGHT / 2)
 
-        # limit scrolling to map size
         x = min(0, x)  # left
         y = min(0, y)  # top
-        x = max(-(self.width - WIDTH), x)  # right
-        y = max(-(self.height - HEIGHT), y)  # bottom
+        x = max(-(self.width - WIDTH), x)
+        y = max(-(self.height - HEIGHT), y)
         self.camera = pg.Rect(x, y, self.width, self.height)

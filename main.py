@@ -9,6 +9,7 @@ from tilemap import *
 
 # HUD functions
 
+
 class Game:
     def __init__(self):
         pg.mixer.pre_init(44100, -16, 4, 2048)
@@ -48,7 +49,7 @@ class Game:
 
     def mousepos_worldpos(self,mouse_pos):
         cam_pos = self.camera.camera.topleft
-        return (mouse_pos[0] - cam_pos[0] , mouse_pos[1] - cam_pos[1]) # fazendo com que a posição do mouse seja a do mundo
+        return (mouse_pos[0] - cam_pos[0] , mouse_pos[1] - cam_pos[1])
 
     def load_menus(self):
         game_folder = path.dirname(__file__)
@@ -86,13 +87,7 @@ class Game:
         self.item_images = {}
         for item in ITEM_IMAGES:
             self.item_images[item] = pg.image.load(path.join(img_folder, ITEM_IMAGES[item])).convert_alpha()
-        # lighting effect
-        self.fog = pg.Surface((WIDTH, HEIGHT))
-        self.fog.fill(NIGHT_COLOR)
-        self.light_mask = pg.image.load(path.join(img_folder, LIGHT_MASK)).convert_alpha()
-        self.light_mask = pg.transform.scale(self.light_mask, LIGHT_RADIUS)
-        self.light_rect = self.light_mask.get_rect()
-        # Sound loading
+        # Carregando os sons
         self.volume = 1
         pg.mixer.music.load(path.join(music_folder, BG_MUSIC))
         pg.mixer.music.set_volume(self.volume)
@@ -125,7 +120,7 @@ class Game:
             self.zombie_hit_sounds.append(s)
 
     def new(self):
-        # initialize all variables and do all the setup for a new game
+        # Setup para um novo jogo
         self.all_sprites = pg.sprite.LayeredUpdates()
         self.walls = pg.sprite.Group()
         self.mobs = pg.sprite.Group()
@@ -154,11 +149,11 @@ class Game:
         self.camera = Camera(self.map.width, self.map.height)
         self.draw_debug = False
         self.paused = False
-        self.night = False
+
         self.effects_sounds['level_start'].play()
 
     def run(self):
-        # game loop - set self.playing = False to end the game
+        # loop do jogo
         self.playing = True
         pg.mixer.music.play(loops=-1)
         while True:
@@ -178,13 +173,13 @@ class Game:
         sys.exit()
 
     def update(self):
-        # update portion of the game loop
+        # update loop
         self.all_sprites.update()
         self.camera.update(self.player)
-        # game over?
+        # checa se é game over
         if len(self.mobs) == 0:
             self.playing = False
-        # player hits items
+        # player colide com um item
         hits = pg.sprite.spritecollide(self.player, self.items, False)
         for hit in hits:
             if hit.type == 'health' and self.player.health < PLAYER_HEALTH:
@@ -202,7 +197,7 @@ class Game:
                 hit.kill()
                 self.effects_sounds['gun_pickup'].play()
                 self.player.weapon = 'staff'
-        # mobs hit player
+        # mob colide com player
         hits = pg.sprite.spritecollide(self.player, self.mobs, False, collide_hit_rect)
         for hit in hits:
             if random() < 0.7:
@@ -214,28 +209,18 @@ class Game:
         if hits:
             self.player.hit()
             self.player.pos += vec(MOB_KNOCKBACK, 0).rotate(-hits[0].rot)
-        # bullets hit mobs
+        # bala colide com mob
         hits = pg.sprite.groupcollide(self.mobs, self.bullets, False, True)
         for mob in hits:
-            # hit.health -= WEAPONS[self.player.weapon]['damage'] * len(hits[hit])
             for bullet in hits[mob]:
                 mob.health -= bullet.damage
                 if mob.health <= 0 and mob in self.mobslist:
                     self.mobslist.remove(mob)
             mob.vel = vec(0, 0)
 
-    def render_fog(self):
-        # draw the light mask (gradient) onto fog image
-        self.fog.fill(NIGHT_COLOR)
-        self.light_rect.center = self.camera.apply(self.player).center
-        self.fog.blit(self.light_mask, self.light_rect)
-        self.screen.blit(self.fog, (0, 0), special_flags=pg.BLEND_MULT)
-
     def draw(self):
         pg.display.set_caption("GUNDALF THE WIZARD   {:.2f}".format(self.clock.get_fps()))
-        # self.screen.fill(BGCOLOR)
         self.screen.blit(self.map_img, self.camera.apply(self.map))
-        # self.draw_grid()
         for sprite in self.all_sprites:
             if isinstance(sprite, Mob):
                 sprite.draw_health()
@@ -246,36 +231,25 @@ class Game:
             for wall in self.walls:
                 pg.draw.rect(self.screen, CYAN, self.camera.apply_rect(wall.rect), 1)
 
-        # pg.draw.rect(self.screen, WHITE, self.player.hit_rect, 2)
-        if self.night:
-            self.render_fog()
-        # HUD functions
+        # Interface
         self.draw_text('Enemies: {}'.format(len(self.mobs)), self.hud_font, 30, WHITE,
                        WIDTH - 10, 10, align="topright")
-        #comeco
         self.draw_gun()
         self.draw_player_health(self.player.health / PLAYER_HEALTH)
         pg.display.flip()
 
     def change_volume(self):
-        print(f'volume: {self.volume}')
         for sound_type in self.weapon_sounds:
             self.weapon_sounds[sound_type][0].set_volume(self.volume)
-            print(self.weapon_sounds[sound_type][0].get_volume())
         for sound_type in self.effects_sounds:
             self.effects_sounds[sound_type].set_volume(self.volume)
-            print(self.effects_sounds[sound_type].get_volume())
         for sound_type in self.zombie_moan_sounds:
             sound_type.set_volume(self.volume)
-            print(sound_type.get_volume())
         for sound_type in self.player_hit_sounds:
             sound_type.set_volume(self.volume)
-            print(sound_type.get_volume())
         for sound_type in self.zombie_hit_sounds:
             sound_type.set_volume(self.volume)
-            print(sound_type.get_volume())
         pg.mixer.music.set_volume(self.volume)
-        print(pg.mixer.music.get_volume())
 
     def draw_volume(self):
         game_folder = path.dirname(__file__)
@@ -306,7 +280,7 @@ class Game:
         pg.display.flip()
 
     def events(self):
-        # catch all events here
+        # eventos
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 self.quit()
@@ -315,8 +289,6 @@ class Game:
                     self.draw_debug = not self.draw_debug
                 if event.key == pg.K_ESCAPE:
                     self.show_pause_screen()
-                if event.key == pg.K_n:
-                    self.night = not self.night
 
             if event.type == pg.MOUSEBUTTONDOWN:
                 if event.button == 0:
@@ -365,7 +337,6 @@ class Game:
         self.camera = Camera(self.map.width, self.map.height)
         self.draw_debug = False
         self.paused = False
-        self.night = False
         self.effects_sounds['level_start'].play()
 
     def show_pause_screen(self):
@@ -520,6 +491,5 @@ class Game:
             self.click_test = False
 
 
-# create the game object
 g = Game()
 g.show_start_screen()

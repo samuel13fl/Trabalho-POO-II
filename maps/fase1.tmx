@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.4" tiledversion="1.4.3" orientation="orthogonal" renderorder="right-down" width="50" height="30" tilewidth="64" tileheight="64" infinite="0" nextlayerid="6" nextobjectid="127">
+<map version="1.4" tiledversion="1.4.3" orientation="orthogonal" renderorder="right-down" width="50" height="30" tilewidth="64" tileheight="64" infinite="0" nextlayerid="6" nextobjectid="128">
  <tileset firstgid="1" source="tileset1.tsx"/>
- <tileset firstgid="541" source="tileset1.tsx"/>
  <layer id="1" name="Camada de Tiles 1" width="50" height="30">
   <data encoding="csv">
 30,30,30,30,30,30,30,30,30,30,30,30,46,46,46,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,
@@ -141,5 +140,6 @@
   <object id="124" x="1296" y="720"/>
   <object id="125" name="health" x="1888" y="976" width="32" height="32"/>
   <object id="126" x="1824" y="576"/>
+  <object id="127" name="wall" x="704" y="0" width="64" height="576"/>
  </objectgroup>
 </map>

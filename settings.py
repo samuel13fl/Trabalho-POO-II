@@ -1,7 +1,7 @@
 import pygame as pg
 vec = pg.math.Vector2
 
-# define some colors (R, G, B)
+# Atalhos para Cores
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 DARKGREY = (40, 40, 40)
@@ -29,7 +29,7 @@ TILESIZE = 64
 GRIDWIDTH = WIDTH / TILESIZE
 GRIDHEIGHT = HEIGHT / TILESIZE
 
-# Player settings
+# Jogador
 PLAYER_HEALTH = 100
 PLAYER_SPEED = 280
 PLAYER_ROT_SPEED = 200
@@ -37,7 +37,7 @@ PLAYER_IMG = 'GUNDALF.png'
 PLAYER_HIT_RECT = pg.Rect(0, 0, 35, 35)
 BARREL_OFFSET = vec(30, 10)
 
-# Weapon settings
+# Arma
 BULLET_IMG = 'bullet.png'
 WEAPONS = {}
 WEAPONS['pistol'] = {'bullet_speed': 500,
@@ -73,7 +73,7 @@ WEAPONS['staff'] = {'bullet_speed': 1,
 spriteweapon = {'pistol' : 'PISTOLFRAME.png',
                 'shotgun': 'SHOTGUNBIG.png',
                 'staff' : 'staff.png'}
-# Mob settings
+# Mob
 
 MOB_IMG = 'ZOMBIE.png'
 MOB_SPEEDS = [250, 150, 125, 200]
@@ -90,19 +90,8 @@ MUZZLE_FLASHES = ['whitePuff15.png', 'whitePuff16.png', 'whitePuff17.png',
 SPLAT = 'splat green.png'
 FLASH_DURATION = 50
 DAMAGE_ALPHA = [i for i in range(0, 255, 55)]
-NIGHT_COLOR = (20, 20, 20)
-LIGHT_RADIUS = (1100, 1100)
-LIGHT_MASK = "light_350_soft.png"
 
-# Layers
-WALL_LAYER = 1
-PLAYER_LAYER = 2
-BULLET_LAYER = 3
-MOB_LAYER = 2
-EFFECTS_LAYER = 4
-ITEMS_LAYER = 1
-
-# Items
+# Itens
 ITEM_IMAGES = {'pistol' : 'SHOTGUN.png',
                'health': 'HEALTH.png',
                'shotgun': 'SHOTGUN.png',
@@ -110,7 +99,7 @@ ITEM_IMAGES = {'pistol' : 'SHOTGUN.png',
 HEALTH_PACK_AMOUNT = 50
 BOB_RANGE = 10
 BOB_SPEED = 0.3
-# Sounds
+# Sons
 BG_MUSIC = 'espionage.ogg'
 PLAYER_HIT_SOUNDS = ['pain/8.wav', 'pain/9.wav', 'pain/10.wav', 'pain/11.wav']
 ZOMBIE_MOAN_SOUNDS = ['brains2.wav', 'brains3.wav', 'zombie-roar-1.wav', 'zombie-roar-2.wav',
