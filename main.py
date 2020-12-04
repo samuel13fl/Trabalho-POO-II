@@ -57,7 +57,7 @@ class Game:
         self.mainscreen = pg.image.load(path.join(img_folder, settings.mainscreen)).convert_alpha()
         self.gameoverscreen = pg.image.load(path.join(img_folder, settings.gameoverscreen)).convert_alpha()
         self.optionscreen = pg.image.load(path.join(img_folder, settings.optionscreen)).convert_alpha()
-        self.pausescreen = pg.image.lad(path.join(img_folder, settings.pausescreen)).convert_alpha()
+        self.pausescreen = pg.image.load(path.join(img_folder, settings.pausescreen)).convert_alpha()
         self.victoryscreen = pg.image.load(path.join(img_folder, settings.victoryscreen)).convert_alpha()
 
     def load_data(self):
@@ -275,9 +275,6 @@ class Game:
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 self.quit()
-            if event.type == pg.KEYDOWN:
-                if event.key == pg.K_h:
-                    self.draw_debug = not self.draw_debug
                 if event.key == pg.K_ESCAPE:
                     self.show_pause_screen()
 
@@ -480,7 +477,6 @@ class Game:
                         self.draw_volume()
 
             self.click_test = False
-
 
 g = Game()
 g.show_start_screen()
