@@ -1,5 +1,13 @@
 import pygame as pg
+from os import path
 vec = pg.math.Vector2
+
+
+# folders
+game_folder = path.dirname(__file__)
+img_folder = path.join(game_folder, 'img')
+snd_folder = path.join(game_folder, 'snd')
+music_folder = path.join(game_folder, 'music')
 
 # Atalhos para Cores
 WHITE = (255, 255, 255)

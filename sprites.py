@@ -36,7 +36,7 @@ class Player(pg.sprite.Sprite):
         self.groups = game.all_sprites
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
-        self.image = game.player_img
+        self.image = pg.image.load(path.join(img_folder, PLAYER_IMG)).convert_alpha()
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
         self.hit_rect = PLAYER_HIT_RECT
@@ -101,7 +101,8 @@ class Player(pg.sprite.Sprite):
         self.rotate()
         self.get_keys()
         self.rot = (self.rot + self.rot_speed * self.game.dt) % 360
-        self.image = pg.transform.rotate(self.game.player_img, self.rot)
+        temp = pg.image.load(path.join(img_folder, PLAYER_IMG)).convert_alpha()
+        self.image = pg.transform.rotate(temp, self.rot)
         if self.damaged:
             try:
                 self.image.fill((255, 255, 255, next(self.damage_alpha)), special_flags=pg.BLEND_RGBA_MULT)

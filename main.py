@@ -64,17 +64,12 @@ class Game:
         self.victoryscreen = pg.image.load(path.join(img_folder, settings.victoryscreen)).convert_alpha()
 
     def load_data(self):
-        game_folder = path.dirname(__file__)
-        img_folder = path.join(game_folder, 'img')
-        snd_folder = path.join(game_folder, 'snd')
-        music_folder = path.join(game_folder, 'music')
-
-        self.map_folder = path.join(game_folder, 'maps')
-        self.title_font = path.join(img_folder, 'ZOMBIE.TTF')
-        self.hud_font = path.join(img_folder, 'Impacted2.0.ttf')
-        self.dim_screen = pg.Surface(self.screen.get_size()).convert_alpha()
-        self.dim_screen.fill((0, 0, 0, 180))
-        self.player_img = pg.image.load(path.join(img_folder, PLAYER_IMG)).convert_alpha()
+        #self.map_folder = path.join(game_folder, 'maps')
+        #self.title_font = path.join(img_folder, 'ZOMBIE.TTF')
+        #self.hud_font = path.join(path.join(path.dirname(__file__), 'img'), 'Impacted2.0.ttf')
+        #self.dim_screen = pg.Surface(self.screen.get_size()).convert_alpha()
+        pg.Surface(self.screen.get_size()).convert_alpha().fill((0, 0, 0, 180))
+        #self.player_img = pg.image.load(path.join(img_folder, PLAYER_IMG)).convert_alpha()
         self.bullet_images = {}
         self.bullet_images['lg'] = pg.image.load(path.join(img_folder, BULLET_IMG)).convert_alpha()
         self.bullet_images['sm'] = pg.transform.scale(self.bullet_images['lg'], (10, 10))
@@ -128,7 +123,7 @@ class Game:
         self.bullets = pg.sprite.Group()
         self.items = pg.sprite.Group()
         self.itemslist = []
-        self.map = TiledMap(path.join(self.map_folder, 'fase1.tmx'))
+        self.map = TiledMap(path.join(path.join(path.dirname(__file__), 'maps'), 'fase1.tmx'))
         self.map_img = self.map.make_map()
         self.map.rect = self.map_img.get_rect()
         for tile_object in self.map.tmxdata.objects:
@@ -232,7 +227,9 @@ class Game:
                 pg.draw.rect(self.screen, CYAN, self.camera.apply_rect(wall.rect), 1)
 
         # Interface
-        self.draw_text('Enemies: {}'.format(len(self.mobs)), self.hud_font, 30, WHITE,
+        self.draw_text('Enemies: {}'.format(len(self.mobs)),
+                       path.join(path.join(path.dirname(__file__), 'img'), 'Impacted2.0.ttf'),
+                       30, WHITE,
                        WIDTH - 10, 10, align="topright")
         self.draw_gun()
         self.draw_player_health(self.player.health / PLAYER_HEALTH)
