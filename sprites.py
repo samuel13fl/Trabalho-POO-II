@@ -33,11 +33,10 @@ def collide_with_walls(sprite, group, dir):
 
 class Player(pg.sprite.Sprite):
     def __init__(self, game, x, y):
-        self._layer = PLAYER_LAYER
         self.groups = game.all_sprites
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
-        self.image = game.player_img
+        self.image = pg.image.load(path.join(img_folder, PLAYER_IMG)).convert_alpha()
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
         self.hit_rect = PLAYER_HIT_RECT
@@ -102,7 +101,8 @@ class Player(pg.sprite.Sprite):
         self.rotate()
         self.get_keys()
         self.rot = (self.rot + self.rot_speed * self.game.dt) % 360
-        self.image = pg.transform.rotate(self.game.player_img, self.rot)
+        temp = pg.image.load(path.join(img_folder, PLAYER_IMG)).convert_alpha()
+        self.image = pg.transform.rotate(temp, self.rot)
         if self.damaged:
             try:
                 self.image.fill((255, 255, 255, next(self.damage_alpha)), special_flags=pg.BLEND_RGBA_MULT)
@@ -125,7 +125,6 @@ class Player(pg.sprite.Sprite):
 
 class Mob(pg.sprite.Sprite):
     def __init__(self, game, x, y):
-        self._layer = MOB_LAYER
         self.groups = game.all_sprites, game.mobs
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
@@ -190,7 +189,6 @@ class Mob(pg.sprite.Sprite):
 
 class Bullet(pg.sprite.Sprite):
     def __init__(self, game, pos, dir, damage):
-        self._layer = BULLET_LAYER
         self.groups = game.all_sprites, game.bullets
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
@@ -228,7 +226,6 @@ class Obstacle(pg.sprite.Sprite):
 
 class MuzzleFlash(pg.sprite.Sprite):
     def __init__(self, game, pos):
-        self._layer = EFFECTS_LAYER
         self.groups = game.all_sprites
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
@@ -246,7 +243,6 @@ class MuzzleFlash(pg.sprite.Sprite):
 
 class Item(pg.sprite.Sprite):
     def __init__(self, game, pos, type):
-        self._layer = ITEMS_LAYER
         self.groups = game.all_sprites, game.items
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
@@ -260,7 +256,6 @@ class Item(pg.sprite.Sprite):
         self.dir = 1
 
     def update(self):
-        # bobbing motion
         offset = BOB_RANGE * (self.tween(self.step / BOB_RANGE) - 0.5)
         self.rect.centery = self.pos.y + offset * self.dir
         self.step += BOB_SPEED

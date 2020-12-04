@@ -9,22 +9,6 @@ from tilemap import *
 
 # HUD functions
 
-def draw_player_health(surf, x, y, pct):
-    if pct < 0:
-        pct = 0
-    BAR_LENGTH = 100
-    BAR_HEIGHT = 20
-    fill = pct * BAR_LENGTH
-    outline_rect = pg.Rect(x, y, BAR_LENGTH, BAR_HEIGHT)
-    fill_rect = pg.Rect(x, y, fill, BAR_HEIGHT)
-    if pct > 0.6:
-        col = GREEN
-    elif pct > 0.3:
-        col = YELLOW
-    else:
-        col = RED
-    pg.draw.rect(surf, col, fill_rect)
-    pg.draw.rect(surf, WHITE, outline_rect, 2)
 
 class Game:
     def __init__(self):
@@ -42,16 +26,30 @@ class Game:
         text_rect = text_surface.get_rect(**{align: (x, y)})
         self.screen.blit(text_surface, text_rect)
 
+    def draw_player_health(self, pct):
+        game_folder = path.dirname(__file__)
+        img_folder = path.join(game_folder, 'img')
+        if pct < 0:
+            pct = 0
+        elif pct == 1:
+            health = pg.image.load(path.join(img_folder, 'HEARTFULL.png')).convert_alpha()
+        elif pct == 0.75:
+            health = pg.image.load(path.join(img_folder, 'HEART3.png')).convert_alpha()
+        elif pct == 0.50:
+            health = pg.image.load(path.join(img_folder, 'HEART2.png')).convert_alpha()
+        elif pct <= 0.25:
+            health = pg.image.load(path.join(img_folder, 'HEART1.png')).convert_alpha()
+        self.screen.blit(health, (10, 10))
+
     def draw_gun(self):
         game_folder = path.dirname(__file__)
         img_folder = path.join(game_folder, 'img')
-        self.weapon = pg.image.load(path.join(img_folder, spriteweapon[self.player.weapon])).convert_alpha()
-        self.screen.blit(self.weapon,(896,640))
-        pg.display.flip()
+        weapon = pg.image.load(path.join(img_folder, spriteweapon[self.player.weapon])).convert_alpha()
+        self.screen.blit(weapon, (832, 640))
 
     def mousepos_worldpos(self,mouse_pos):
         cam_pos = self.camera.camera.topleft
-        return (mouse_pos[0] - cam_pos[0] , mouse_pos[1] - cam_pos[1]) # fazendo com que a posição do mouse seja a do mundo
+        return (mouse_pos[0] - cam_pos[0] , mouse_pos[1] - cam_pos[1])
 
     def load_menus(self):
         game_folder = path.dirname(__file__)
@@ -64,19 +62,14 @@ class Game:
         self.optionscreen = pg.image.load(path.join(img_folder, settings.optionscreen)).convert_alpha()
         self.pausescreen = pg.image.load(path.join(img_folder, settings.pausescreen)).convert_alpha()
         self.victoryscreen = pg.image.load(path.join(img_folder, settings.victoryscreen)).convert_alpha()
-    
-    def load_data(self):
-        game_folder = path.dirname(__file__)
-        img_folder = path.join(game_folder, 'img')
-        snd_folder = path.join(game_folder, 'snd')
-        music_folder = path.join(game_folder, 'music')
 
-        self.map_folder = path.join(game_folder, 'maps')
-        self.title_font = path.join(img_folder, 'ZOMBIE.TTF')
-        self.hud_font = path.join(img_folder, 'Impacted2.0.ttf')
-        self.dim_screen = pg.Surface(self.screen.get_size()).convert_alpha()
-        self.dim_screen.fill((0, 0, 0, 180))
-        self.player_img = pg.image.load(path.join(img_folder, PLAYER_IMG)).convert_alpha()
+    def load_data(self):
+        #self.map_folder = path.join(game_folder, 'maps')
+        #self.title_font = path.join(img_folder, 'ZOMBIE.TTF')
+        #self.hud_font = path.join(path.join(path.dirname(__file__), 'img'), 'Impacted2.0.ttf')
+        #self.dim_screen = pg.Surface(self.screen.get_size()).convert_alpha()
+        pg.Surface(self.screen.get_size()).convert_alpha().fill((0, 0, 0, 180))
+        #self.player_img = pg.image.load(path.join(img_folder, PLAYER_IMG)).convert_alpha()
         self.bullet_images = {}
         self.bullet_images['lg'] = pg.image.load(path.join(img_folder, BULLET_IMG)).convert_alpha()
         self.bullet_images['sm'] = pg.transform.scale(self.bullet_images['lg'], (10, 10))
@@ -89,38 +82,40 @@ class Game:
         self.item_images = {}
         for item in ITEM_IMAGES:
             self.item_images[item] = pg.image.load(path.join(img_folder, ITEM_IMAGES[item])).convert_alpha()
-        # lighting effect
-        self.fog = pg.Surface((WIDTH, HEIGHT))
-        self.fog.fill(NIGHT_COLOR)
-        self.light_mask = pg.image.load(path.join(img_folder, LIGHT_MASK)).convert_alpha()
-        self.light_mask = pg.transform.scale(self.light_mask, LIGHT_RADIUS)
-        self.light_rect = self.light_mask.get_rect()
-        # Sound loading
+        # Carregando os sons
+        self.volume = 1
         pg.mixer.music.load(path.join(music_folder, BG_MUSIC))
+        pg.mixer.music.set_volume(self.volume)
         self.effects_sounds = {}
         for type in EFFECTS_SOUNDS:
-            self.effects_sounds[type] = pg.mixer.Sound(path.join(snd_folder, EFFECTS_SOUNDS[type]))
+            s = pg.mixer.Sound(path.join(snd_folder, EFFECTS_SOUNDS[type]))
+            s.set_volume(self.volume)
+            self.effects_sounds[type] = s
         self.weapon_sounds = {}
         for weapon in WEAPON_SOUNDS:
             self.weapon_sounds[weapon] = []
             for snd in WEAPON_SOUNDS[weapon]:
                 s = pg.mixer.Sound(path.join(snd_folder, snd))
-                s.set_volume(0.3)
+                s.set_volume(self.volume)
                 self.weapon_sounds[weapon].append(s)
         self.zombie_moan_sounds = []
         for snd in ZOMBIE_MOAN_SOUNDS:
             s = pg.mixer.Sound(path.join(snd_folder, snd))
-            s.set_volume(0.2)
+            s.set_volume(self.volume)
             self.zombie_moan_sounds.append(s)
         self.player_hit_sounds = []
         for snd in PLAYER_HIT_SOUNDS:
-            self.player_hit_sounds.append(pg.mixer.Sound(path.join(snd_folder, snd)))
+            s = pg.mixer.Sound(path.join(snd_folder, snd))
+            s.set_volume(self.volume)
+            self.player_hit_sounds.append(s)
         self.zombie_hit_sounds = []
         for snd in ZOMBIE_HIT_SOUNDS:
-            self.zombie_hit_sounds.append(pg.mixer.Sound(path.join(snd_folder, snd)))
+            s = pg.mixer.Sound(path.join(snd_folder, snd))
+            s.set_volume(self.volume)
+            self.zombie_hit_sounds.append(s)
 
     def new(self):
-        # initialize all variables and do all the setup for a new game
+        # Setup para um novo jogo
         self.all_sprites = pg.sprite.LayeredUpdates()
         self.walls = pg.sprite.Group()
         self.mobs = pg.sprite.Group()
@@ -128,14 +123,14 @@ class Game:
         self.bullets = pg.sprite.Group()
         self.items = pg.sprite.Group()
         self.itemslist = []
-        self.map = TiledMap(path.join(self.map_folder, 'fase1.tmx'))
+        self.map = TiledMap(path.join(path.join(path.dirname(__file__), 'maps'), 'fase1.tmx'))
         self.map_img = self.map.make_map()
         self.map.rect = self.map_img.get_rect()
         for tile_object in self.map.tmxdata.objects:
             obj_center = vec(tile_object.x + tile_object.width/2, tile_object.y + tile_object.height/2)
 
             if tile_object.name == 'player':
-                self.player = Player(self, obj_center.x, obj_center.y)  
+                self.player = Player(self, obj_center.x, obj_center.y)
             if tile_object.name == 'zombie':
                 M=Mob(self, obj_center.x, obj_center.y)
                 self.mobslist.append(M)
@@ -149,11 +144,11 @@ class Game:
         self.camera = Camera(self.map.width, self.map.height)
         self.draw_debug = False
         self.paused = False
-        self.night = False
+
         self.effects_sounds['level_start'].play()
 
     def run(self):
-        # game loop - set self.playing = False to end the game
+        # loop do jogo
         self.playing = True
         pg.mixer.music.play(loops=-1)
         while True:
@@ -173,13 +168,13 @@ class Game:
         sys.exit()
 
     def update(self):
-        # update portion of the game loop
+        # update loop
         self.all_sprites.update()
         self.camera.update(self.player)
-        # game over?
+        # checa se é game over
         if len(self.mobs) == 0:
             self.playing = False
-        # player hits items
+        # player colide com um item
         hits = pg.sprite.spritecollide(self.player, self.items, False)
         for hit in hits:
             if hit.type == 'health' and self.player.health < PLAYER_HEALTH:
@@ -197,7 +192,7 @@ class Game:
                 hit.kill()
                 self.effects_sounds['gun_pickup'].play()
                 self.player.weapon = 'staff'
-        # mobs hit player
+        # mob colide com player
         hits = pg.sprite.spritecollide(self.player, self.mobs, False, collide_hit_rect)
         for hit in hits:
             if random() < 0.7:
@@ -209,28 +204,18 @@ class Game:
         if hits:
             self.player.hit()
             self.player.pos += vec(MOB_KNOCKBACK, 0).rotate(-hits[0].rot)
-        # bullets hit mobs
+        # bala colide com mob
         hits = pg.sprite.groupcollide(self.mobs, self.bullets, False, True)
         for mob in hits:
-            # hit.health -= WEAPONS[self.player.weapon]['damage'] * len(hits[hit])
             for bullet in hits[mob]:
                 mob.health -= bullet.damage
                 if mob.health <= 0 and mob in self.mobslist:
                     self.mobslist.remove(mob)
             mob.vel = vec(0, 0)
 
-    def render_fog(self):
-        # draw the light mask (gradient) onto fog image
-        self.fog.fill(NIGHT_COLOR)
-        self.light_rect.center = self.camera.apply(self.player).center
-        self.fog.blit(self.light_mask, self.light_rect)
-        self.screen.blit(self.fog, (0, 0), special_flags=pg.BLEND_MULT)
-
     def draw(self):
         pg.display.set_caption("GUNDALF THE WIZARD   {:.2f}".format(self.clock.get_fps()))
-        # self.screen.fill(BGCOLOR)
         self.screen.blit(self.map_img, self.camera.apply(self.map))
-        # self.draw_grid()
         for sprite in self.all_sprites:
             if isinstance(sprite, Mob):
                 sprite.draw_health()
@@ -241,19 +226,58 @@ class Game:
             for wall in self.walls:
                 pg.draw.rect(self.screen, CYAN, self.camera.apply_rect(wall.rect), 1)
 
-        # pg.draw.rect(self.screen, WHITE, self.player.hit_rect, 2)
-        if self.night:
-            self.render_fog()
-        # HUD functions
-        draw_player_health(self.screen, 10, 10, self.player.health / PLAYER_HEALTH)
-        self.draw_text('Zombies: {}'.format(len(self.mobs)), self.hud_font, 30, WHITE,
+        # Interface
+        self.draw_text('Enemies: {}'.format(len(self.mobs)),
+                       path.join(path.join(path.dirname(__file__), 'img'), 'Impacted2.0.ttf'),
+                       30, WHITE,
                        WIDTH - 10, 10, align="topright")
-        #comeco
         self.draw_gun()
+        self.draw_player_health(self.player.health / PLAYER_HEALTH)
+        pg.display.flip()
+
+    def change_volume(self):
+        for sound_type in self.weapon_sounds:
+            self.weapon_sounds[sound_type][0].set_volume(self.volume)
+        for sound_type in self.effects_sounds:
+            self.effects_sounds[sound_type].set_volume(self.volume)
+        for sound_type in self.zombie_moan_sounds:
+            sound_type.set_volume(self.volume)
+        for sound_type in self.player_hit_sounds:
+            sound_type.set_volume(self.volume)
+        for sound_type in self.zombie_hit_sounds:
+            sound_type.set_volume(self.volume)
+        pg.mixer.music.set_volume(self.volume)
+
+    def draw_volume(self):
+        game_folder = path.dirname(__file__)
+        img_folder = path.join(game_folder, 'img')
+        if self.volume == 1:
+            volume = pg.image.load(path.join(img_folder, 'NUMBER100.png')).convert_alpha()
+        elif 1 > self.volume >= 0.9:
+            volume = pg.image.load(path.join(img_folder, 'NUMBER90.png')).convert_alpha()
+        elif 0.9 > self.volume >= 0.8:
+            volume = pg.image.load(path.join(img_folder, 'NUMBER80.png')).convert_alpha()
+        elif 0.8 > self.volume >= 0.7:
+            volume = pg.image.load(path.join(img_folder, 'NUMBER70.png')).convert_alpha()
+        elif 0.7 > self.volume >= 0.6:
+            volume = pg.image.load(path.join(img_folder, 'NUMBER60.png')).convert_alpha()
+        elif 0.6 > self.volume >= 0.5:
+            volume = pg.image.load(path.join(img_folder, 'NUMBER50.png')).convert_alpha()
+        elif 0.5 > self.volume >= 0.4:
+            volume = pg.image.load(path.join(img_folder, 'NUMBER40.png')).convert_alpha()
+        elif 0.4 > self.volume >= 0.3:
+            volume = pg.image.load(path.join(img_folder, 'NUMBER30.png')).convert_alpha()
+        elif 0.3 > self.volume >= 0.2:
+            volume = pg.image.load(path.join(img_folder, 'NUMBER20.png')).convert_alpha()
+        elif 0.2 > self.volume >= 0.1:
+            volume = pg.image.load(path.join(img_folder, 'NUMBER10.png')).convert_alpha()
+        else:
+            volume = pg.image.load(path.join(img_folder, 'NUMBER0.png')).convert_alpha()
+        self.screen.blit(volume, (140, 140))
         pg.display.flip()
 
     def events(self):
-        # catch all events here
+        # eventos
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 self.quit()
@@ -261,10 +285,8 @@ class Game:
                 if event.key == pg.K_h:
                     self.draw_debug = not self.draw_debug
                 if event.key == pg.K_ESCAPE:
-                    self.show_pause_screen() 
-                if event.key == pg.K_n:
-                    self.night = not self.night
-               
+                    self.show_pause_screen()
+
             if event.type == pg.MOUSEBUTTONDOWN:
                 if event.button == 0:
                     self.click = True
@@ -292,7 +314,7 @@ class Game:
         self.bullets = pg.sprite.Group()
         self.items = pg.sprite.Group()
         self.itemslist = []
-        self.map = TiledMap(path.join(self.map_folder, 'TesteFase1.tmx'))
+        self.map = TiledMap(path.join(self.map_folder, 'Fase1.tmx'))
         self.map_img = self.map.make_map()
         self.map.rect = self.map_img.get_rect()
 
@@ -312,7 +334,6 @@ class Game:
         self.camera = Camera(self.map.width, self.map.height)
         self.draw_debug = False
         self.paused = False
-        self.night = False
         self.effects_sounds['level_start'].play()
 
     def show_pause_screen(self):
@@ -321,7 +342,7 @@ class Game:
         self.screen.blit(self.pausescreen, (0, 0))
         self.button_pause_back = pg.Rect(416 , 323, 192, 28)
         self.button_pause_save = pg.Rect(448, 436, 128, 28)
-        self.button_pause_quit = pg.Rect(448, 565, 128, 28) 
+        self.button_pause_quit = pg.Rect(448, 565, 128, 28)
         pg.draw.rect(self.screen, (255, 0, 0), self.button_pause_back,-1)
         pg.draw.rect(self.screen, (255, 0, 0), self.button_pause_save,-1)
         pg.draw.rect(self.screen, (255, 0, 0), self.button_pause_quit,-1)
@@ -342,7 +363,7 @@ class Game:
         pg.display.flip()
         pg.mixer.music.pause()
         self.wait_for_key()
-    
+
     def show_victoryscreen(self):
         self.current_screen = "victoryscreen"
         self.screen.blit(self.victoryscreen,(0,0))
@@ -369,12 +390,10 @@ class Game:
         self.button_options_return = pg.Rect(336, 480, 385, 57)
         self.button_options_volumeup = pg.Rect(744, 80, 40, 72)
         self.button_options_volumedown = pg.Rect(272, 80, 40, 72)
-        # self.button_volume = pg.
         pg.draw.rect(self.screen, (0, 0, 0), self.button_options_return,-1)
-        # pg.draw.rect(self.screen, (255, 0, 0), 
-        
         pg.draw.rect(self.screen, (255, 0, 0), self.button_options_volumeup,-1)
         pg.draw.rect(self.screen, (255, 0, 0), self.button_options_volumedown,-1)
+        self.draw_volume()
         pg.display.flip()
         self.wait_for_key()
 
@@ -403,18 +422,18 @@ class Game:
                         self.paused = False
                         self.current_screen = ''
                         waiting = False
-                    
+
                     elif self.button_pause_save.collidepoint((mx, my)):
                         g.save()
                         print('teste')
                     elif self.button_pause_quit.collidepoint((mx, my)):
                         g.show_start_screen()
-                        
+
                 elif self.current_screen == "victoryscreen":
                     if self.button_go_restart.collidepoint((mx, my)):
                         g.new()
                         g.run()
-                        
+
                     elif self.button_go_quit.collidepoint((mx, my)):
                         g.show_start_screen()
 
@@ -422,7 +441,7 @@ class Game:
                     if self.button_go_restart.collidepoint((mx, my)):
                         g.new()
                         g.run()
-                    
+
                     elif self.button_go_quit.collidepoint((mx, my)):
                         g.show_start_screen()
 
@@ -441,55 +460,33 @@ class Game:
 
                     elif self.button_start_quit.collidepoint((mx, my)):
                         self.quit()
-            
+
                 elif self.current_screen == "Options Screen":
                     if self.button_options_return.collidepoint((mx, my)):
                         g.show_start_screen()
 
                     elif self.button_options_volumeup.collidepoint((mx, my)):
-                        for sound_type in self.weapon_sounds:
-                            self.weapon_sounds[sound_type][0].set_volume(self.weapon_sounds[sound_type][0].get_volume() + 0.1)
-                            print(self.weapon_sounds[sound_type][0].get_volume())
-                        for sound_type in self.effects_sounds:
-                            self.effects_sounds[sound_type].set_volume(self.effects_sounds[sound_type].get_volume() + 0.1)
-                            print(self.effects_sounds[sound_type].get_volume())
-                        for sound_type in self.zombie_moan_sounds:
-                            sound_type.set_volume(sound_type.get_volume() + 0.1)
-                            print(sound_type.get_volume())
-                        for sound_type in self.player_hit_sounds:
-                            sound_type.set_volume(sound_type.get_volume() + 0.1)
-                            print(sound_type.get_volume())
-                        for sound_type in self.zombie_hit_sounds:
-                            sound_type.set_volume(sound_type.get_volume() + 0.1)
-                            print(sound_type.get_volume())
-                        pg.mixer.music.set_volume(pg.mixer.music.get_volume() + 0.1)
-                        print(pg.mixer.music.get_volume())
-                        
+                        if self.volume >= 1:
+                            self.volume = 1
+                        else:
+                            self.volume += 0.1
+
+                        self.change_volume()
+                        self.screen.blit(self.optionscreen, (0, 0))
+                        self.draw_volume()
 
                     elif self.button_options_volumedown.collidepoint((mx, my)):
-                        for sound_type in self.weapon_sounds:
-                            self.weapon_sounds[sound_type][0].set_volume(self.weapon_sounds[sound_type][0].get_volume() - 0.1)
-                            print(self.weapon_sounds[sound_type][0].get_volume())
-                        for sound_type in self.effects_sounds:
-                            self.effects_sounds[sound_type].set_volume(self.effects_sounds[sound_type].get_volume() - 0.1)
-                            print(self.effects_sounds[sound_type].get_volume())
-                        for sound_type in self.zombie_moan_sounds:
-                            sound_type.set_volume(sound_type.get_volume() - 0.1)
-                            print(sound_type.get_volume())
-                        for sound_type in self.player_hit_sounds:
-                            sound_type.set_volume(sound_type.get_volume() - 0.1)
-                            print(sound_type.get_volume())
-                        for sound_type in self.zombie_hit_sounds:
-                            sound_type.set_volume(sound_type.get_volume() - 0.1)
-                            print(sound_type.get_volume())
-                        pg.mixer.music.set_volume(pg.mixer.music.get_volume() - 0.1)
-                        print(pg.mixer.music.get_volume())
-                       
-                        
-    
+                        if self.volume <= 0:
+                            self.volume = 0
+                        else:
+                            self.volume -= 0.1
+
+                        self.change_volume()
+                        self.screen.blit(self.optionscreen, (0, 0))
+                        self.draw_volume()
+
             self.click_test = False
 
 
-# create the game object
 g = Game()
 g.show_start_screen()
