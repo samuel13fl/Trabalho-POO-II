@@ -8,6 +8,7 @@ game_folder = path.dirname(__file__)
 img_folder = path.join(game_folder, 'img')
 snd_folder = path.join(game_folder, 'snd')
 music_folder = path.join(game_folder, 'music')
+map_folder = path.join(game_folder, 'maps')
 
 # Atalhos para Cores
 WHITE = (255, 255, 255)

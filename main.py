@@ -275,6 +275,7 @@ class Game:
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 self.quit()
+            if event.type == pg.KEYDOWN:
                 if event.key == pg.K_ESCAPE:
                     self.show_pause_screen()
 
@@ -305,7 +306,7 @@ class Game:
         self.bullets = pg.sprite.Group()
         self.items = pg.sprite.Group()
         self.itemslist = []
-        self.map = TiledMap(path.join(self.map_folder, 'Fase1.tmx'))
+        self.map = TiledMap(path.join(map_folder, 'Fase1.tmx'))
         self.map_img = self.map.make_map()
         self.map.rect = self.map_img.get_rect()
 
@@ -416,7 +417,6 @@ class Game:
 
                     elif self.button_pause_save.collidepoint((mx, my)):
                         g.save()
-                        print('teste')
                     elif self.button_pause_quit.collidepoint((mx, my)):
                         g.show_start_screen()
 
