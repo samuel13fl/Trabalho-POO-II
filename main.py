@@ -7,9 +7,6 @@ import pickle
 from sprites import *
 from tilemap import *
 
-# HUD functions
-
-
 class Game:
     def __init__(self):
         pg.mixer.pre_init(44100, -16, 4, 2048)
@@ -60,16 +57,11 @@ class Game:
         self.mainscreen = pg.image.load(path.join(img_folder, settings.mainscreen)).convert_alpha()
         self.gameoverscreen = pg.image.load(path.join(img_folder, settings.gameoverscreen)).convert_alpha()
         self.optionscreen = pg.image.load(path.join(img_folder, settings.optionscreen)).convert_alpha()
-        self.pausescreen = pg.image.load(path.join(img_folder, settings.pausescreen)).convert_alpha()
+        self.pausescreen = pg.image.lad(path.join(img_folder, settings.pausescreen)).convert_alpha()
         self.victoryscreen = pg.image.load(path.join(img_folder, settings.victoryscreen)).convert_alpha()
 
     def load_data(self):
-        #self.map_folder = path.join(game_folder, 'maps')
-        #self.title_font = path.join(img_folder, 'ZOMBIE.TTF')
-        #self.hud_font = path.join(path.join(path.dirname(__file__), 'img'), 'Impacted2.0.ttf')
-        #self.dim_screen = pg.Surface(self.screen.get_size()).convert_alpha()
         pg.Surface(self.screen.get_size()).convert_alpha().fill((0, 0, 0, 180))
-        #self.player_img = pg.image.load(path.join(img_folder, PLAYER_IMG)).convert_alpha()
         self.bullet_images = {}
         self.bullet_images['lg'] = pg.image.load(path.join(img_folder, BULLET_IMG)).convert_alpha()
         self.bullet_images['sm'] = pg.transform.scale(self.bullet_images['lg'], (10, 10))
@@ -192,6 +184,7 @@ class Game:
                 hit.kill()
                 self.effects_sounds['gun_pickup'].play()
                 self.player.weapon = 'staff'
+
         # mob colide com player
         hits = pg.sprite.spritecollide(self.player, self.mobs, False, collide_hit_rect)
         for hit in hits:
@@ -204,6 +197,7 @@ class Game:
         if hits:
             self.player.hit()
             self.player.pos += vec(MOB_KNOCKBACK, 0).rotate(-hits[0].rot)
+
         # bala colide com mob
         hits = pg.sprite.groupcollide(self.mobs, self.bullets, False, True)
         for mob in hits:
