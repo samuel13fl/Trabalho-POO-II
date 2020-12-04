@@ -13,6 +13,9 @@ class Game:
         pg.init()
         self.screen = pg.display.set_mode((WIDTH, HEIGHT))
         pg.display.set_caption(TITLE)
+       
+        self.cursor = pg.image.load(path.join(img_folder,mouse)).convert_alpha()
+        
         self.clock = pg.time.Clock()
         self.load_data()
         self.load_menus()
@@ -24,8 +27,7 @@ class Game:
         self.screen.blit(text_surface, text_rect)
 
     def draw_player_health(self, pct):
-        game_folder = path.dirname(__file__)
-        img_folder = path.join(game_folder, 'img')
+     
         if pct < 0:
             pct = 0
         elif pct == 1:
@@ -39,8 +41,7 @@ class Game:
         self.screen.blit(health, (10, 10))
 
     def draw_gun(self):
-        game_folder = path.dirname(__file__)
-        img_folder = path.join(game_folder, 'img')
+        
         weapon = pg.image.load(path.join(img_folder, spriteweapon[self.player.weapon])).convert_alpha()
         self.screen.blit(weapon, (832, 640))
 
@@ -49,11 +50,6 @@ class Game:
         return (mouse_pos[0] - cam_pos[0] , mouse_pos[1] - cam_pos[1])
 
     def load_menus(self):
-        game_folder = path.dirname(__file__)
-        img_folder = path.join(game_folder, 'img')
-        snd_folder = path.join(game_folder, 'snd')
-        music_folder = path.join(game_folder, 'music')
-
         self.mainscreen = pg.image.load(path.join(img_folder, settings.mainscreen)).convert_alpha()
         self.gameoverscreen = pg.image.load(path.join(img_folder, settings.gameoverscreen)).convert_alpha()
         self.optionscreen = pg.image.load(path.join(img_folder, settings.optionscreen)).convert_alpha()
@@ -74,6 +70,13 @@ class Game:
         self.item_images = {}
         for item in ITEM_IMAGES:
             self.item_images[item] = pg.image.load(path.join(img_folder, ITEM_IMAGES[item])).convert_alpha()
+        #efeitos de luz
+        self.fog = pg.Surface((WIDTH, HEIGHT))
+        self.fog.fill(NIGHT_COLOR)
+        self.light_mask = pg.image.load(path.join(img_folder, LIGHT_MASK)).convert_alpha()
+        self.light_mask = pg.transform.scale(self.light_mask, LIGHT_RADIUS)
+        self.light_rect = self.light_mask.get_rect()
+        
         # Carregando os sons
         self.volume = 1
         pg.mixer.music.load(path.join(music_folder, BG_MUSIC))
@@ -136,6 +139,7 @@ class Game:
         self.camera = Camera(self.map.width, self.map.height)
         self.draw_debug = False
         self.paused = False
+        self.night = False
 
         self.effects_sounds['level_start'].play()
 
@@ -143,7 +147,9 @@ class Game:
         # loop do jogo
         self.playing = True
         pg.mixer.music.play(loops=-1)
+        
         while True:
+            
             self.dt = self.clock.tick(FPS) / 1000.0  # fix for Python 2.x
             self.events()
             if not self.paused:
@@ -163,6 +169,8 @@ class Game:
         # update loop
         self.all_sprites.update()
         self.camera.update(self.player)
+        
+        
         # checa se é game over
         if len(self.mobs) == 0:
             self.playing = False
@@ -206,19 +214,26 @@ class Game:
                 if mob.health <= 0 and mob in self.mobslist:
                     self.mobslist.remove(mob)
             mob.vel = vec(0, 0)
+            
+    def render_fog(self):
+        # draw the light mask (gradient) onto fog image
+        self.fog.fill(NIGHT_COLOR)
+        self.light_rect.center = self.camera.apply(self.player).center
+        self.fog.blit(self.light_mask, self.light_rect)
+        self.screen.blit(self.fog, (0, 0), special_flags=pg.BLEND_MULT)
 
     def draw(self):
         pg.display.set_caption("GUNDALF THE WIZARD   {:.2f}".format(self.clock.get_fps()))
+        pg.mouse.set_visible(False)
         self.screen.blit(self.map_img, self.camera.apply(self.map))
+        self.screen.blit(self.cursor, (pg.mouse.get_pos()))
         for sprite in self.all_sprites:
             if isinstance(sprite, Mob):
                 sprite.draw_health()
             self.screen.blit(sprite.image, self.camera.apply(sprite))
-            if self.draw_debug:
-                pg.draw.rect(self.screen, CYAN, self.camera.apply_rect(sprite.hit_rect), 1)
-        if self.draw_debug:
-            for wall in self.walls:
-                pg.draw.rect(self.screen, CYAN, self.camera.apply_rect(wall.rect), 1)
+        
+        if self.night:
+            self.render_fog()
 
         # Interface
         self.draw_text('Enemies: {}'.format(len(self.mobs)),
@@ -243,8 +258,7 @@ class Game:
         pg.mixer.music.set_volume(self.volume)
 
     def draw_volume(self):
-        game_folder = path.dirname(__file__)
-        img_folder = path.join(game_folder, 'img')
+        
         if self.volume == 1:
             volume = pg.image.load(path.join(img_folder, 'NUMBER100.png')).convert_alpha()
         elif 1 > self.volume >= 0.9:
@@ -275,8 +289,11 @@ class Game:
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 self.quit()
+            if event.type == pg.KEYDOWN:
                 if event.key == pg.K_ESCAPE:
                     self.show_pause_screen()
+                if event.key == pg.K_n:
+                    self.night = not self.night
 
             if event.type == pg.MOUSEBUTTONDOWN:
                 if event.button == 0:
@@ -305,7 +322,7 @@ class Game:
         self.bullets = pg.sprite.Group()
         self.items = pg.sprite.Group()
         self.itemslist = []
-        self.map = TiledMap(path.join(self.map_folder, 'Fase1.tmx'))
+        self.map = TiledMap(path.join(map_folder, 'Fase1.tmx'))
         self.map_img = self.map.make_map()
         self.map.rect = self.map_img.get_rect()
 
@@ -329,6 +346,7 @@ class Game:
 
     def show_pause_screen(self):
         self.paused = True
+        pg.mouse.set_visible(True)
         self.current_screen = "Pause"
         self.screen.blit(self.pausescreen, (0, 0))
         self.button_pause_back = pg.Rect(416 , 323, 192, 28)
@@ -341,6 +359,7 @@ class Game:
         self.wait_for_key()
 
     def show_start_screen(self):
+        pg.mouse.set_visible(True)
         self.current_screen = "Start Screen"
         self.screen.blit(self.mainscreen,(0,0))
         self.button_start_start = pg.Rect(68, 204, 220, 30)
@@ -356,6 +375,7 @@ class Game:
         self.wait_for_key()
 
     def show_victoryscreen(self):
+        pg.mouse.set_visible(True)
         self.current_screen = "victoryscreen"
         self.screen.blit(self.victoryscreen,(0,0))
         self.button_go_restart = pg.Rect(100, 703, 288, 33)
@@ -366,6 +386,7 @@ class Game:
         self.wait_for_key()
 
     def show_go_screen(self):
+        pg.mouse.set_visible(True)
         self.current_screen = "Game Over Screen"
         self.screen.blit(self.gameoverscreen,(0,0))
         self.button_go_restart = pg.Rect(156, 666, 289, 32 )
@@ -376,6 +397,7 @@ class Game:
         self.wait_for_key()
 
     def options(self):
+        pg.mouse.set_visible(True)
         self.current_screen = "Options Screen"
         self.screen.blit(self.optionscreen,(0,0))
         self.button_options_return = pg.Rect(336, 480, 385, 57)
@@ -403,6 +425,7 @@ class Game:
                         self.paused = False
                         self.current_screen = ''
                         waiting = False
+                        pg.mouse.set_visible(True)
                 if event.type == pg.MOUSEBUTTONDOWN:
                     if event.button == 1:
                         self.click_test = True
