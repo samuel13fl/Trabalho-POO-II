@@ -45,7 +45,7 @@ PLAYER_ROT_SPEED = 200
 PLAYER_IMG = 'GUNDALF.png'
 PLAYER_HIT_RECT = pg.Rect(0, 0, 35, 35)
 BARREL_OFFSET = vec(30, 10)
-
+mouse = 'cursor.png'
 # Arma
 BULLET_IMG = 'bullet.png'
 WEAPONS = {}
@@ -98,6 +98,9 @@ MUZZLE_FLASHES = ['whitePuff15.png', 'whitePuff16.png', 'whitePuff17.png',
                   'whitePuff18.png']
 SPLAT = 'splat green.png'
 FLASH_DURATION = 50
+NIGHT_COLOR = (20, 20, 20)
+LIGHT_RADIUS = (900, 900)
+LIGHT_MASK = "light_350_med.png"
 DAMAGE_ALPHA = [i for i in range(0, 255, 55)]
 
 # Itens

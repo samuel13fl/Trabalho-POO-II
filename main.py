@@ -13,6 +13,9 @@ class Game:
         pg.init()
         self.screen = pg.display.set_mode((WIDTH, HEIGHT))
         pg.display.set_caption(TITLE)
+
+        self.cursor = pg.image.load(path.join(img_folder,mouse)).convert_alpha()
+
         self.clock = pg.time.Clock()
         self.load_data()
 
@@ -23,8 +26,7 @@ class Game:
         self.screen.blit(text_surface, text_rect)
 
     def draw_player_health(self, pct):
-        game_folder = path.dirname(__file__)
-        img_folder = path.join(game_folder, 'img')
+
         if pct < 0:
             pct = 0
         elif pct == 1:
@@ -38,8 +40,7 @@ class Game:
         self.screen.blit(health, (10, 10))
 
     def draw_gun(self):
-        game_folder = path.dirname(__file__)
-        img_folder = path.join(game_folder, 'img')
+
         weapon = pg.image.load(path.join(img_folder, spriteweapon[self.player.weapon])).convert_alpha()
         self.screen.blit(weapon, (832, 640))
 
@@ -197,7 +198,9 @@ class Game:
 
     def draw(self):
         pg.display.set_caption("GUNDALF THE WIZARD   {:.2f}".format(self.clock.get_fps()))
+        pg.mouse.set_visible(False)
         self.screen.blit(self.map_img, self.camera.apply(self.map))
+        self.screen.blit(self.cursor, (pg.mouse.get_pos()))
         for sprite in self.all_sprites:
             if isinstance(sprite, Mob):
                 sprite.draw_health()
@@ -231,8 +234,7 @@ class Game:
         pg.mixer.music.set_volume(self.volume)
 
     def draw_volume(self):
-        game_folder = path.dirname(__file__)
-        img_folder = path.join(game_folder, 'img')
+
         if self.volume == 1:
             volume = pg.image.load(path.join(img_folder, 'NUMBER100.png')).convert_alpha()
         elif 1 > self.volume >= 0.9:
@@ -266,6 +268,22 @@ class Game:
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_ESCAPE:
                     self.show_pause_screen()
+                if event.key == pg.K_n:
+                    self.night = not self.night
+                if event.key == pg.K_EQUALS:
+                    if self.volume >= 1:
+                        self.volume = 1
+                    else:
+                        self.volume += 0.1
+                    self.change_volume()
+                if event.key == pg.K_MINUS:
+                    if self.volume <= 0:
+                        self.volume = 0
+                    else:
+                        self.volume -= 0.1
+
+                    self.change_volume()
+
 
             if event.type == pg.MOUSEBUTTONDOWN:
                 if event.button == 0:
@@ -318,6 +336,7 @@ class Game:
 
     def show_pause_screen(self):
         self.paused = True
+        pg.mouse.set_visible(True)
         self.current_screen = "Pause"
         self.screen.blit(pg.image.load(path.join(img_folder, settings.pausescreen)).convert_alpha(), (0, 0))
         self.button_pause_back = pg.Rect(416 , 323, 192, 28)
@@ -330,6 +349,7 @@ class Game:
         self.wait_for_key()
 
     def show_start_screen(self):
+        pg.mouse.set_visible(True)
         self.current_screen = "Start Screen"
         self.screen.blit(pg.image.load(path.join(img_folder, settings.mainscreen)).convert_alpha(), (0,0))
         self.button_start_start = pg.Rect(68, 204, 220, 30)
@@ -345,6 +365,7 @@ class Game:
         self.wait_for_key()
 
     def show_victoryscreen(self):
+        pg.mouse.set_visible(True)
         self.current_screen = "victoryscreen"
         self.screen.blit(pg.image.load(path.join(img_folder, settings.victoryscreen)).convert_alpha(), (0,0))
         self.button_go_restart = pg.Rect(100, 703, 288, 33)
@@ -355,6 +376,7 @@ class Game:
         self.wait_for_key()
 
     def show_go_screen(self):
+        pg.mouse.set_visible(True)
         self.current_screen = "Game Over Screen"
         self.screen.blit(pg.image.load(path.join(img_folder, settings.gameoverscreen)).convert_alpha(), (0,0))
         self.button_go_restart = pg.Rect(156, 666, 289, 32 )
@@ -365,6 +387,7 @@ class Game:
         self.wait_for_key()
 
     def options(self):
+        pg.mouse.set_visible(True)
         self.current_screen = "Options Screen"
         self.screen.blit(pg.image.load(path.join(img_folder, settings.optionscreen)).convert_alpha(),(0,0))
         self.button_options_return = pg.Rect(336, 480, 385, 57)
@@ -392,6 +415,7 @@ class Game:
                         self.paused = False
                         self.current_screen = ''
                         waiting = False
+                        pg.mouse.set_visible(True)
                 if event.type == pg.MOUSEBUTTONDOWN:
                     if event.button == 1:
                         self.click_test = True
