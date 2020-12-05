@@ -85,7 +85,7 @@ spriteweapon = {'pistol' : 'PISTOLFRAME.png',
 # Mob
 
 MOB_IMG = 'ZOMBIE.png'
-MOB_SPEEDS = [250, 150, 125, 200]
+MOB_SPEEDS = [100, 100, 100, 100]
 MOB_HIT_RECT = pg.Rect(0, 0, 30, 30)
 MOB_HEALTH = 100
 MOB_DAMAGE = 25

@@ -15,7 +15,6 @@ class Game:
         pg.display.set_caption(TITLE)
         self.clock = pg.time.Clock()
         self.load_data()
-        self.load_menus()
 
     def draw_text(self, text, font_name, size, color, x, y, align="topleft"):
         font = pg.font.Font(font_name, size)
@@ -48,34 +47,23 @@ class Game:
         cam_pos = self.camera.camera.topleft
         return (mouse_pos[0] - cam_pos[0] , mouse_pos[1] - cam_pos[1])
 
-    def load_menus(self):
-        game_folder = path.dirname(__file__)
-        img_folder = path.join(game_folder, 'img')
-        snd_folder = path.join(game_folder, 'snd')
-        music_folder = path.join(game_folder, 'music')
-
-        self.mainscreen = pg.image.load(path.join(img_folder, settings.mainscreen)).convert_alpha()
-        self.gameoverscreen = pg.image.load(path.join(img_folder, settings.gameoverscreen)).convert_alpha()
-        self.optionscreen = pg.image.load(path.join(img_folder, settings.optionscreen)).convert_alpha()
-        self.pausescreen = pg.image.load(path.join(img_folder, settings.pausescreen)).convert_alpha()
-        self.victoryscreen = pg.image.load(path.join(img_folder, settings.victoryscreen)).convert_alpha()
-
     def load_data(self):
+        # carregando a tela
         pg.Surface(self.screen.get_size()).convert_alpha().fill((0, 0, 0, 180))
-        self.bullet_images = {}
-        self.bullet_images['lg'] = pg.image.load(path.join(img_folder, BULLET_IMG)).convert_alpha()
-        self.bullet_images['sm'] = pg.transform.scale(self.bullet_images['lg'], (10, 10))
-        self.mob_img = pg.image.load(path.join(img_folder, MOB_IMG)).convert_alpha()
-        self.splat = pg.image.load(path.join(img_folder, SPLAT)).convert_alpha()
-        self.splat = pg.transform.scale(self.splat, (64, 64))
-        self.gun_flashes = []
-        for img in MUZZLE_FLASHES:
-            self.gun_flashes.append(pg.image.load(path.join(img_folder, img)).convert_alpha())
-        self.item_images = {}
-        for item in ITEM_IMAGES:
-            self.item_images[item] = pg.image.load(path.join(img_folder, ITEM_IMAGES[item])).convert_alpha()
+        # self.bullet_images = {}
+        # self.bullet_images['lg'] = pg.image.load(path.join(img_folder, BULLET_IMG)).convert_alpha()
+        # self.bullet_images['sm'] = pg.transform.scale(self.bullet_images['lg'], (10, 10))
+        # self.splat = pg.image.load(path.join(img_folder, SPLAT)).convert_alpha()
+        # self.splat = pg.transform.scale(self.splat, (64, 64))
+        # self.gun_flashes = []
+        # for img in MUZZLE_FLASHES:
+        #     self.gun_flashes.append(pg.image.load(path.join(img_folder, img)).convert_alpha())
+        # self.item_images = {}
+        # for item in ITEM_IMAGES:
+        #     self.item_images[item] = pg.image.load(path.join(img_folder, ITEM_IMAGES[item])).convert_alpha()
+
         # Carregando os sons
-        self.volume = 1
+        self.volume = 0.1
         pg.mixer.music.load(path.join(music_folder, BG_MUSIC))
         pg.mixer.music.set_volume(self.volume)
         self.effects_sounds = {}
@@ -331,7 +319,7 @@ class Game:
     def show_pause_screen(self):
         self.paused = True
         self.current_screen = "Pause"
-        self.screen.blit(self.pausescreen, (0, 0))
+        self.screen.blit(pg.image.load(path.join(img_folder, settings.pausescreen)).convert_alpha(), (0, 0))
         self.button_pause_back = pg.Rect(416 , 323, 192, 28)
         self.button_pause_save = pg.Rect(448, 436, 128, 28)
         self.button_pause_quit = pg.Rect(448, 565, 128, 28)
@@ -343,7 +331,7 @@ class Game:
 
     def show_start_screen(self):
         self.current_screen = "Start Screen"
-        self.screen.blit(self.mainscreen,(0,0))
+        self.screen.blit(pg.image.load(path.join(img_folder, settings.mainscreen)).convert_alpha(), (0,0))
         self.button_start_start = pg.Rect(68, 204, 220, 30)
         self.button_start_option = pg.Rect(64, 340, 190, 35)
         self.button_start_load = pg.Rect(68, 465, 125, 30)
@@ -358,7 +346,7 @@ class Game:
 
     def show_victoryscreen(self):
         self.current_screen = "victoryscreen"
-        self.screen.blit(self.victoryscreen,(0,0))
+        self.screen.blit(pg.image.load(path.join(img_folder, settings.victoryscreen)).convert_alpha(), (0,0))
         self.button_go_restart = pg.Rect(100, 703, 288, 33)
         self.button_go_quit = pg.Rect(640, 706, 192, 28)
         pg.draw.rect(self.screen, (255, 0, 0), self.button_go_restart,-1)
@@ -368,7 +356,7 @@ class Game:
 
     def show_go_screen(self):
         self.current_screen = "Game Over Screen"
-        self.screen.blit(self.gameoverscreen,(0,0))
+        self.screen.blit(pg.image.load(path.join(img_folder, settings.gameoverscreen)).convert_alpha(), (0,0))
         self.button_go_restart = pg.Rect(156, 666, 289, 32 )
         self.button_go_quit = pg.Rect(694, 666, 192, 29)
         pg.draw.rect(self.screen, (255, 0, 0), self.button_go_restart,-1)
@@ -378,7 +366,7 @@ class Game:
 
     def options(self):
         self.current_screen = "Options Screen"
-        self.screen.blit(self.optionscreen,(0,0))
+        self.screen.blit(pg.image.load(path.join(img_folder, settings.optionscreen)).convert_alpha(),(0,0))
         self.button_options_return = pg.Rect(336, 480, 385, 57)
         self.button_options_volumeup = pg.Rect(744, 80, 40, 72)
         self.button_options_volumedown = pg.Rect(272, 80, 40, 72)
@@ -447,7 +435,6 @@ class Game:
                     elif self.button_start_load.collidepoint((mx, my)):
                         g.load()
                         g.run()
-                        print('teste')
 
                     elif self.button_start_quit.collidepoint((mx, my)):
                         self.quit()
@@ -463,7 +450,8 @@ class Game:
                             self.volume += 0.1
 
                         self.change_volume()
-                        self.screen.blit(self.optionscreen, (0, 0))
+                        self.screen.blit(pg.image.load(path.join(img_folder, settings.optionscreen)).convert_alpha(),
+                                         (0, 0))
                         self.draw_volume()
 
                     elif self.button_options_volumedown.collidepoint((mx, my)):
@@ -473,7 +461,8 @@ class Game:
                             self.volume -= 0.1
 
                         self.change_volume()
-                        self.screen.blit(self.optionscreen, (0, 0))
+                        self.screen.blit(pg.image.load(path.join(img_folder, settings.optionscreen)).convert_alpha(),
+                                         (0, 0))
                         self.draw_volume()
 
             self.click_test = False
