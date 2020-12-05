@@ -41,7 +41,7 @@ class Game:
 
     def draw_gun(self):
 
-        weapon = pg.image.load(path.join(img_folder, spriteweapon[self.player.weapon])).convert_alpha()
+        weapon = pg.image.load(path.join(img_folder, self.player.weapon.sprite)).convert_alpha()
         self.screen.blit(weapon, (832, 640))
 
     def mousepos_worldpos(self,mouse_pos):
@@ -51,17 +51,6 @@ class Game:
     def load_data(self):
         # carregando a tela
         pg.Surface(self.screen.get_size()).convert_alpha().fill((0, 0, 0, 180))
-        # self.bullet_images = {}
-        # self.bullet_images['lg'] = pg.image.load(path.join(img_folder, BULLET_IMG)).convert_alpha()
-        # self.bullet_images['sm'] = pg.transform.scale(self.bullet_images['lg'], (10, 10))
-        # self.splat = pg.image.load(path.join(img_folder, SPLAT)).convert_alpha()
-        # self.splat = pg.transform.scale(self.splat, (64, 64))
-        # self.gun_flashes = []
-        # for img in MUZZLE_FLASHES:
-        #     self.gun_flashes.append(pg.image.load(path.join(img_folder, img)).convert_alpha())
-        # self.item_images = {}
-        # for item in ITEM_IMAGES:
-        #     self.item_images[item] = pg.image.load(path.join(img_folder, ITEM_IMAGES[item])).convert_alpha()
 
         # Carregando os sons
         self.volume = 0.1
@@ -167,7 +156,7 @@ class Game:
                 self.itemslist.remove(hit)
                 hit.kill()
                 self.effects_sounds['gun_pickup'].play()
-                self.player.weapon = 'shotgun'
+                self.player.weapon = Shotgun()
             if hit.type == 'staff':
                 self.itemslist.remove(hit)
                 hit.kill()
