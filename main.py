@@ -20,6 +20,9 @@ class Game:
         self.load_data()
         self.load_menus()
 
+    def test(self):
+        pass
+
     def draw_text(self, text, font_name, size, color, x, y, align="topleft"):
         font = pg.font.Font(font_name, size)
         text_surface = font.render(text, True, color)
