@@ -33,7 +33,7 @@ def collide_with_walls(sprite, group, dir):
 
 class Player(pg.sprite.Sprite):
     def __init__(self, game, x, y):
-        #self.groups = game.all_sprites
+        # self.groups = game.all_sprites
         pg.sprite.Sprite.__init__(self, game.all_sprites)
         self.game = game
         self.image = pg.image.load(path.join(img_folder, PLAYER_IMG)).convert_alpha()
