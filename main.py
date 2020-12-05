@@ -268,8 +268,6 @@ class Game:
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_ESCAPE:
                     self.show_pause_screen()
-                if event.key == pg.K_n:
-                    self.night = not self.night
                 if event.key == pg.K_EQUALS:
                     if self.volume >= 1:
                         self.volume = 1
