@@ -46,7 +46,7 @@ class Player(pg.sprite.Sprite):
         self.rot = 0
         self.last_shot = 0
         self.health = PLAYER_HEALTH
-        self.weapon = 'pistol'
+        self.weapon = Pistol()
         self.damaged = False
         self.orig_image = self.image
 
@@ -78,15 +78,15 @@ class Player(pg.sprite.Sprite):
 
     def shoot(self):
         now = pg.time.get_ticks()
-        if now - self.last_shot > WEAPONS[self.weapon]['rate']:
+        if now - self.last_shot > self.weapon.rate:
             self.last_shot = now
             dir = vec(1, 0).rotate(-self.rot)
             pos = self.pos + BARREL_OFFSET.rotate(-self.rot)
-            self.vel = vec(-WEAPONS[self.weapon]['kickback'], 0).rotate(-self.rot)
-            for i in range(WEAPONS[self.weapon]['bullet_count']):
-                spread = uniform(-WEAPONS[self.weapon]['spread'], WEAPONS[self.weapon]['spread'])
-                Bullet(self.game, pos, dir.rotate(spread), WEAPONS[self.weapon]['damage'])
-                snd = choice(self.game.weapon_sounds[self.weapon])
+            self.vel = vec(-self.weapon.kickback, 0).rotate(-self.rot)
+            for i in range(self.weapon.bullet_count):
+                spread = uniform(-self.weapon.spread, self.weapon.spread)
+                Bullet(self.game, pos, dir.rotate(spread), self.weapon.damage)
+                snd = choice(self.game.weapon_sounds[self.weapon.name])
                 if snd.get_num_channels() > 2:
                     snd.stop()
                 snd.play()
@@ -192,13 +192,13 @@ class Bullet(pg.sprite.Sprite):
         self.groups = game.all_sprites, game.bullets
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
-        self.image = self.create_image(game.player.weapon)
+        self.image = self.create_image(game.player.weapon.name)
         self.rect = self.image.get_rect()
         self.hit_rect = self.rect
         self.pos = vec(pos)
         self.rect.center = pos
         # spread = uniform(-GUN_SPREAD, GUN_SPREAD)
-        self.vel = dir * WEAPONS[game.player.weapon]['bullet_speed'] * uniform(0.9, 1.1)
+        self.vel = dir * self.game.player.weapon.bullet_speed * uniform(0.9, 1.1)
         self.spawn_time = pg.time.get_ticks()
         self.damage = damage
 
@@ -207,14 +207,15 @@ class Bullet(pg.sprite.Sprite):
         self.rect.center = self.pos
         if pg.sprite.spritecollideany(self, self.game.walls):
             self.kill()
-        if pg.time.get_ticks() - self.spawn_time > WEAPONS[self.game.player.weapon]['bullet_lifetime']:
+        if pg.time.get_ticks() - self.spawn_time > self.game.player.weapon.bullet_lifetime:
             self.kill()
 
     def create_image(self, player_weapon):
         bullet_images = {}
         bullet_images['lg'] = pg.image.load(path.join(img_folder, BULLET_IMG)).convert_alpha()
         bullet_images['sm'] = pg.transform.scale(bullet_images['lg'], (10, 10))
-        return bullet_images[WEAPONS[player_weapon]['bullet_size']]
+        return bullet_images[self.game.player.weapon.bullet_size]
+
 
 class Obstacle(pg.sprite.Sprite):
     def __init__(self, game, x, y, w, h):
@@ -261,7 +262,7 @@ class Item(pg.sprite.Sprite):
         self.type = type
         self.image = self.create_image()
         self.rect = self.image.get_rect()
-        #self.type = type
+        # self.type = type
         self.pos = pos
         self.rect.center = pos
         self.tween = tween.easeInOutSine
@@ -281,3 +282,33 @@ class Item(pg.sprite.Sprite):
         for item in ITEM_IMAGES:
             item_images[item] = pg.image.load(path.join(img_folder, ITEM_IMAGES[item])).convert_alpha()
         return item_images[self.type]
+
+
+class Weapon:
+    def __init__(self, bullet_speed, bullet_lifetime, rate, kickback, spread, damage, size, count):
+        self.bullet_speed = bullet_speed
+        self.bullet_lifetime = bullet_lifetime
+        self.rate = rate
+        self.kickback = kickback
+        self.spread = spread
+        self.damage = damage
+        self.bullet_size = size
+        self.bullet_count = count
+
+
+class Pistol(Weapon):
+    def __init__(self, bullet_speed=500, bullet_lifetime=1000, rate=250, kickback=200, spread=5, damage=10,
+                 size='lg',
+                 count=1):
+        super().__init__(bullet_speed, bullet_lifetime, rate, kickback, spread, damage, size, count)
+        self.name = 'pistol'
+        self.sprite = 'PISTOLFRAME.png'
+
+
+class Shotgun(Weapon):
+    def __init__(self, bullet_speed=400, bullet_lifetime=500, rate=900, kickback=300, spread=50, damage=5,
+                 size='sm',
+                 count=20):
+        super().__init__(bullet_speed, bullet_lifetime, rate, kickback, spread, damage, size, count)
+        self.name = 'shotgun'
+        self.sprite = 'SHOTGUNBIG.png'
