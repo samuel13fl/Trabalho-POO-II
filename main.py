@@ -294,6 +294,20 @@ class Game:
                     self.show_pause_screen()
                 if event.key == pg.K_n:
                     self.night = not self.night
+                if event.key == pg.K_EQUALS:
+                    if self.volume >= 1:
+                        self.volume = 1
+                    else:
+                        self.volume += 0.1
+                    self.change_volume()
+                if event.key == pg.K_MINUS:
+                    if self.volume <= 0:
+                        self.volume = 0
+                    else:
+                        self.volume -= 0.1
+
+                    self.change_volume()
+
 
             if event.type == pg.MOUSEBUTTONDOWN:
                 if event.button == 0:
