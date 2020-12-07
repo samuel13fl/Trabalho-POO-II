@@ -122,7 +122,7 @@ class Game:
         self.playing = True
         pg.mixer.music.play(loops=-1)
         while True:
-            self.dt = self.clock.tick(FPS) / 1000.0  # fix for Python 2.x
+            self.dt = self.clock.tick(FPS) / 1000.0
             self.events()
             if not self.paused:
                 self.update()
