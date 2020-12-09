@@ -115,8 +115,6 @@ class Game:
         self.draw_debug = False
         self.paused = False
 
-        self.effects_sounds['level_start'].play()
-
     def run(self):
         # loop do jogo
         self.playing = True
@@ -202,7 +200,7 @@ class Game:
 
         # Interface
         self.draw_text('Enemies: {}'.format(len(self.mobs)),
-                       path.join(path.join(path.dirname(__file__), 'img'), 'Impacted2.0.ttf'),
+                       path.join(path.join(path.dirname(__file__), 'img'), 'PressStart2P.ttf'),
                        30, WHITE,
                        WIDTH - 10, 10, align="topright")
         self.draw_gun()
@@ -319,7 +317,6 @@ class Game:
         self.camera = Camera(self.map.width, self.map.height)
         self.draw_debug = False
         self.paused = False
-        self.effects_sounds['level_start'].play()
 
     def show_pause_screen(self):
         self.paused = True

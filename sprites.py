@@ -90,7 +90,7 @@ class Player(pg.sprite.Sprite):
                 if snd.get_num_channels() > 2:
                     snd.stop()
                 snd.play()
-            MuzzleFlash(self.game, pos)
+            Shot(self.game, pos)
 
     def hit(self):
         self.damaged = True
@@ -230,7 +230,7 @@ class Obstacle(pg.sprite.Sprite):
         self.rect.y = y
 
 
-class MuzzleFlash(pg.sprite.Sprite):
+class Shot(pg.sprite.Sprite):
     def __init__(self, game, pos):
         self.groups = game.all_sprites
         pg.sprite.Sprite.__init__(self, self.groups)
@@ -248,7 +248,7 @@ class MuzzleFlash(pg.sprite.Sprite):
     def create_image(self):
         gun_flashes = []
         size = randint(20, 50)
-        for img in MUZZLE_FLASHES:
+        for img in SHOTS:
             gun_flashes.append(pg.image.load(path.join(img_folder, img)).convert_alpha())
         image = pg.transform.scale(choice(gun_flashes), (size, size))
         return image

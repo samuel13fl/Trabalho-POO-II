@@ -62,13 +62,9 @@ AVOID_RADIUS = 50
 DETECT_RADIUS = 500
 
 # Effects
-MUZZLE_FLASHES = ['whitePuff15.png', 'whitePuff16.png', 'whitePuff17.png',
-                  'whitePuff18.png']
-SPLAT = 'splat green.png'
+SHOTS = ['shot1.png', 'shot2.png']
+SPLAT = 'blood-splat.png'
 FLASH_DURATION = 50
-NIGHT_COLOR = (20, 20, 20)
-LIGHT_RADIUS = (900, 900)
-LIGHT_MASK = "light_350_med.png"
 DAMAGE_ALPHA = [i for i in range(0, 255, 55)]
 
 # Itens
@@ -80,7 +76,7 @@ HEALTH_PACK_AMOUNT = 50
 BOB_RANGE = 10
 BOB_SPEED = 0.3
 # Sons
-BG_MUSIC = 'espionage.ogg'
+BG_MUSIC = 'music-background.ogg'
 PLAYER_HIT_SOUNDS = ['pain/8.wav', 'pain/9.wav', 'pain/10.wav', 'pain/11.wav', 'pain/12.wav', 'pain/13.wav']
 ZOMBIE_MOAN_SOUNDS = ['zombie-roar-1.wav', 'zombie-roar-2.wav',
                       'zombie-roar-3.wav', 'zombie-roar-4.wav', 'zombie-roar-5.wav', 'zombie-roar-6.wav', 'zombie-roar-7.wav']
@@ -88,6 +84,4 @@ ZOMBIE_HIT_SOUNDS = ['splat-zumbi.wav']
 WEAPON_SOUNDS = {'pistol': ['pistol.wav'],
                  'shotgun': ['shotgun.wav'],
                  'staff': ['shotgun.wav']}
-EFFECTS_SOUNDS = {'level_start': 'level_start.wav',
-                  'health_up': 'health_pack.wav',
-                  'gun_pickup': 'gun_pickup.wav'}
+EFFECTS_SOUNDS = {'health_up': 'health_pack.wav', 'gun_pickup': 'gun_pickup.wav'}
