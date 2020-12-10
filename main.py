@@ -104,6 +104,9 @@ class Game:
             if tile_object.name == 'zombie':
                 M=Mob(self, obj_center.x, obj_center.y)
                 self.mobslist.append(M)
+            if tile_object.name == 'ghost':
+                M = Ghost(self, obj_center.x, obj_center.y)
+                self.mobslist.append(M)
             if tile_object.name == 'wall':
                 Obstacle(self, tile_object.x, tile_object.y, tile_object.width, tile_object.height)
             if tile_object.name in ['health', 'shotgun','staff']:
@@ -278,13 +281,20 @@ class Game:
 
     def save(self):
         self.mobspos=[]
+        self.ghostpos=[]
         self.itemspos=[]
         for i in range(len(self.mobslist)):
-            self.mobspos.append(self.mobslist[i].pos)
+            if isinstance(self.mobslist[i], Mob):
+                self.mobspos.append(self.mobslist[i].pos)
+            if isinstance(self.mobslist[i], Ghost):
+                self.ghostpos.append(self.mobslist[i].pos)
         for item in self.itemslist:
             self.itemspos.append([item.pos,item.type])
         with open("savefile","wb") as f:
-            data = [[self.player.health,self.player.weapon,self.player.rect.center],self.mobspos,self.itemspos]
+            data = [[self.player.health,self.player.weapon,self.player.rect.center],
+                    self.mobspos,
+                    self.itemspos,
+                    self.ghostpos]
             pickle.dump(data,f)
 
     def load(self):
@@ -306,6 +316,9 @@ class Game:
         self.player.weapon = loaddata[0][1]
         for zombie in loaddata[1]:
             M=Mob(self, zombie[0], zombie[1])
+            self.mobslist.append(M)
+        for ghost in loaddata[3]:
+            M = Ghost(self, ghost[0], ghost[1])
             self.mobslist.append(M)
         for item in loaddata[2]:
             I=Item(self, item[0], item[1])
