@@ -1,11 +1,15 @@
-import pygame as pg
 import sys
 from random import choice, random
-from os import path
 import settings
 import pickle
-from sprites import *
 from tilemap import *
+from player import Player
+from mob import Mob
+from ghost import Ghost
+from obstacle import Obstacle
+from weapon import *
+from item import Item
+
 
 class Game:
     def __init__(self):
@@ -14,7 +18,7 @@ class Game:
         self.screen = pg.display.set_mode((WIDTH, HEIGHT))
         pg.display.set_caption(TITLE)
 
-        self.cursor = pg.image.load(path.join(img_folder,mouse)).convert_alpha()
+        self.cursor = pg.image.load(path.join(img_folder, mouse)).convert_alpha()
 
         self.clock = pg.time.Clock()
         self.load_data()
