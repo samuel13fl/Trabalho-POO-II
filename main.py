@@ -7,18 +7,20 @@ import pickle
 from sprites import *
 from tilemap import *
 
+
 class Game:
     def __init__(self):
-        pg.mixer.pre_init(44100, -16, 4, 2048)
-        pg.init()
-        self.screen = pg.display.set_mode((WIDTH, HEIGHT))
-        pg.display.set_caption(TITLE)
+        pg.mixer.pre_init(44100, -16, 4, 2048)  # pre init seta os padrões quando mixer.init for chamado
+        pg.init()  # inicializa o pygame
+        self.screen = pg.display.set_mode((WIDTH, HEIGHT))  # inicializa a tela
+        pg.display.set_caption(TITLE)  # coloca o titulo na janela inicializada
 
-        self.cursor = pg.image.load(path.join(img_folder,mouse)).convert_alpha()
+        self.cursor = pg.image.load(path.join(img_folder, mouse)).convert_alpha()  # carrega a imagem do cursor
 
-        self.clock = pg.time.Clock()
-        self.load_data()
+        self.clock = pg.time.Clock()  # clock do jogo
+        self.load_data()  # função onde carregamos o necessário para o jogo rodar (especialmente sons e tela)
 
+    # as três funções draw carregam a interface enquanto o  jogo roda
     def draw_text(self, text, font_name, size, color, x, y, align="topleft"):
         font = pg.font.Font(font_name, size)
         text_surface = font.render(text, True, color)
@@ -44,13 +46,15 @@ class Game:
         weapon = pg.image.load(path.join(img_folder, self.player.weapon.sprite)).convert_alpha()
         self.screen.blit(weapon, (832, 640))
 
-    def mousepos_worldpos(self,mouse_pos):
+    # essa função foi feita para o jogador rodar junto com o mouse e fazer o mouse acompanhar o scroll da tela
+    def mousepos_worldpos(self, mouse_pos):
         cam_pos = self.camera.camera.topleft
-        return (mouse_pos[0] - cam_pos[0] , mouse_pos[1] - cam_pos[1])
+        return (mouse_pos[0] - cam_pos[0], mouse_pos[1] - cam_pos[1])
+
 
     def load_data(self):
         # carregando a tela
-        pg.Surface(self.screen.get_size()).convert_alpha().fill((0, 0, 0, 180))
+        pg.Surface(self.screen.get_size()).convert_alpha().fill((0, 0, 0, 180))  # preenche a tela com cor solida
 
         # Carregando os sons
         self.volume = 0.1
@@ -84,38 +88,42 @@ class Game:
             s.set_volume(self.volume)
             self.zombie_hit_sounds.append(s)
 
+    # Setup para um novo jogo
     def new(self):
-        # Setup para um novo jogo
-        self.all_sprites = pg.sprite.LayeredUpdates()
+        # Criando grupos de sprites
+
+        self.all_sprites = pg.sprite.Group()
         self.walls = pg.sprite.Group()
         self.mobs = pg.sprite.Group()
         self.mobslist = []
         self.bullets = pg.sprite.Group()
         self.items = pg.sprite.Group()
         self.itemslist = []
+
+        # Usando a biblioteca Pytween para criar um mapa em tiles, usando o editor de mapas
         self.map = TiledMap(path.join(path.join(path.dirname(__file__), 'maps'), 'fase1.tmx'))
         self.map_img = self.map.make_map()
         self.map.rect = self.map_img.get_rect()
+
+        # loop que lê os objetos posicionados no editor de mapas e cria eles
         for tile_object in self.map.tmxdata.objects:
-            obj_center = vec(tile_object.x + tile_object.width/2, tile_object.y + tile_object.height/2)
+            obj_center = vec(tile_object.x + tile_object.width / 2, tile_object.y + tile_object.height / 2)
 
             if tile_object.name == 'player':
                 self.player = Player(self, obj_center.x, obj_center.y)
             if tile_object.name == 'zombie':
-                M=Mob(self, obj_center.x, obj_center.y)
+                M = Mob(self, obj_center.x, obj_center.y)
                 self.mobslist.append(M)
             if tile_object.name == 'ghost':
                 M = Ghost(self, obj_center.x, obj_center.y)
                 self.mobslist.append(M)
             if tile_object.name == 'wall':
                 Obstacle(self, tile_object.x, tile_object.y, tile_object.width, tile_object.height)
-            if tile_object.name in ['health', 'shotgun','staff']:
-                I=Item(self, obj_center, tile_object.name)
+            if tile_object.name in ['health', 'shotgun', 'staff']:
+                I = Item(self, obj_center, tile_object.name)
                 self.itemslist.append(I)
 
-
         self.camera = Camera(self.map.width, self.map.height)
-        self.draw_debug = False
         self.paused = False
 
     def run(self):
@@ -123,7 +131,7 @@ class Game:
         self.playing = True
         pg.mixer.music.play(loops=-1)
         while True:
-            self.dt = self.clock.tick(FPS) / 1000.0
+            self.dt = self.clock.tick(FPS) / 1000  # controla a velocidade do movimento das coisas
             self.events()
             if not self.paused:
                 self.update()
@@ -141,12 +149,14 @@ class Game:
     def update(self):
         # update loop
         self.all_sprites.update()
-        self.camera.update(self.player)
+        self.camera.update(self.player) # centra a câmera no jogador
+
         # checa se é game over
         if len(self.mobs) == 0:
             self.playing = False
-        # player colide com um item
-        hits = pg.sprite.spritecollide(self.player, self.items, False)
+
+        # player colide com um item (o false diz que não é pra fazer o jogador desaparecer)
+        hits = pg.sprite.spritecollide(self.player, self.items, False)  # retorna uma lista de items que colidem
         for hit in hits:
             if hit.type == 'health' and self.player.health < PLAYER_HEALTH:
                 self.itemslist.remove(hit)
@@ -164,7 +174,7 @@ class Game:
                 self.effects_sounds['gun_pickup'].play()
                 self.player.weapon = 'staff'
 
-        # mob colide com player
+        # mob colide com player. collide_hit_rect é uma função que checa isso, caso contrário deve passar o rect
         hits = pg.sprite.spritecollide(self.player, self.mobs, False, collide_hit_rect)
         for hit in hits:
             if random() < 0.7:
@@ -173,9 +183,10 @@ class Game:
             hit.vel = vec(0, 0)
             if self.player.health <= 0:
                 self.playing = False
+
         if hits:
-            self.player.hit()
-            self.player.pos += vec(MOB_KNOCKBACK, 0).rotate(-hits[0].rot)
+            self.player.hit()  # função que dá invincibility frames após levar um hit
+            self.player.pos += vec(MOB_KNOCKBACK, 0).rotate(-hits[0].rot)  # essa linha é onde ocorre o knockback
 
         # bala colide com mob
         hits = pg.sprite.groupcollide(self.mobs, self.bullets, False, True)
@@ -186,22 +197,25 @@ class Game:
                     self.mobslist.remove(mob)
             mob.vel = vec(0, 0)
 
+    # função que é chamada quando um novo jogo começa
     def draw(self):
+        # titulo da janela
         pg.display.set_caption("GUNDALF THE WIZARD   {:.2f}".format(self.clock.get_fps()))
+
+        # impede que o mouse use a imagem de cursor fora da tela de jogo rodando
         pg.mouse.set_visible(False)
-        self.screen.blit(self.map_img, self.camera.apply(self.map))
-        self.screen.blit(self.cursor, (pg.mouse.get_pos()))
+
+        self.screen.blit(self.map_img, self.camera.apply(self.map))  # alinha a camera no canto correto
+
+        self.screen.blit(self.cursor, (pg.mouse.get_pos()))  # desenha o cursor
+
+        # desenha a barra de vida dos mobs
         for sprite in self.all_sprites:
             if isinstance(sprite, Mob):
                 sprite.draw_health()
             self.screen.blit(sprite.image, self.camera.apply(sprite))
-            if self.draw_debug:
-                pg.draw.rect(self.screen, CYAN, self.camera.apply_rect(sprite.hit_rect), 1)
-        if self.draw_debug:
-            for wall in self.walls:
-                pg.draw.rect(self.screen, CYAN, self.camera.apply_rect(wall.rect), 1)
 
-        # Interface
+        # interface, usa as funções draw
         self.draw_text('Enemies: {}'.format(len(self.mobs)),
                        path.join(path.join(path.dirname(__file__), 'img'), 'PressStart2P.ttf'),
                        30, WHITE,
@@ -210,6 +224,7 @@ class Game:
         self.draw_player_health(self.player.health / PLAYER_HEALTH)
         pg.display.flip()
 
+    # muda todos os volumes para o valor atual de self.volume
     def change_volume(self):
         for sound_type in self.weapon_sounds:
             self.weapon_sounds[sound_type][0].set_volume(self.volume)
@@ -223,6 +238,7 @@ class Game:
             sound_type.set_volume(self.volume)
         pg.mixer.music.set_volume(self.volume)
 
+    # desenha o volume na tela de opções
     def draw_volume(self):
 
         if self.volume == 1:
@@ -250,14 +266,19 @@ class Game:
         self.screen.blit(volume, (140, 140))
         pg.display.flip()
 
+    # loop de eventos dentro do jogo
     def events(self):
         # eventos
         for event in pg.event.get():
+            # fechar a janela
             if event.type == pg.QUIT:
                 self.quit()
             if event.type == pg.KEYDOWN:
+                # apertar ESC para pausar
                 if event.key == pg.K_ESCAPE:
                     self.show_pause_screen()
+
+                # aumentar e diminuir o volume dentro de jogo
                 if event.key == pg.K_EQUALS:
                     if self.volume >= 1:
                         self.volume = 1
@@ -272,33 +293,26 @@ class Game:
 
                     self.change_volume()
 
-
-            if event.type == pg.MOUSEBUTTONDOWN:
-                if event.button == 0:
-                    self.click = True
-                if event.button == 1:
-                    self.click = False
-
     def save(self):
-        self.mobspos=[]
-        self.ghostpos=[]
-        self.itemspos=[]
+        self.mobspos = []
+        self.ghostpos = []
+        self.itemspos = []
         for i in range(len(self.mobslist)):
             if isinstance(self.mobslist[i], Mob):
                 self.mobspos.append(self.mobslist[i].pos)
             if isinstance(self.mobslist[i], Ghost):
                 self.ghostpos.append(self.mobslist[i].pos)
         for item in self.itemslist:
-            self.itemspos.append([item.pos,item.type])
-        with open("savefile","wb") as f:
-            data = [[self.player.health,self.player.weapon,self.player.rect.center],
+            self.itemspos.append([item.pos, item.type])
+        with open("savefile", "wb") as f:
+            data = [[self.player.health, self.player.weapon, self.player.rect.center],
                     self.mobspos,
                     self.itemspos,
                     self.ghostpos]
-            pickle.dump(data,f)
+            pickle.dump(data, f)
 
     def load(self):
-        with open("savefile","rb") as f:
+        with open("savefile", "rb") as f:
             loaddata = pickle.load(f)
         self.all_sprites = pg.sprite.LayeredUpdates()
         self.walls = pg.sprite.Group()
@@ -315,13 +329,13 @@ class Game:
         self.player.health = loaddata[0][0]
         self.player.weapon = loaddata[0][1]
         for zombie in loaddata[1]:
-            M=Mob(self, zombie[0], zombie[1])
+            M = Mob(self, zombie[0], zombie[1])
             self.mobslist.append(M)
         for ghost in loaddata[3]:
             M = Ghost(self, ghost[0], ghost[1])
             self.mobslist.append(M)
         for item in loaddata[2]:
-            I=Item(self, item[0], item[1])
+            I = Item(self, item[0], item[1])
             self.itemslist.append(I)
         for tile_object in self.map.tmxdata.objects:
             if tile_object.name == 'wall':
@@ -336,27 +350,27 @@ class Game:
         pg.mouse.set_visible(True)
         self.current_screen = "Pause"
         self.screen.blit(pg.image.load(path.join(img_folder, settings.pausescreen)).convert_alpha(), (0, 0))
-        self.button_pause_back = pg.Rect(416 , 323, 192, 28)
+        self.button_pause_back = pg.Rect(416, 323, 192, 28)
         self.button_pause_save = pg.Rect(448, 436, 128, 28)
         self.button_pause_quit = pg.Rect(448, 565, 128, 28)
-        pg.draw.rect(self.screen, (255, 0, 0), self.button_pause_back,-1)
-        pg.draw.rect(self.screen, (255, 0, 0), self.button_pause_save,-1)
-        pg.draw.rect(self.screen, (255, 0, 0), self.button_pause_quit,-1)
+        pg.draw.rect(self.screen, (255, 0, 0), self.button_pause_back, -1)
+        pg.draw.rect(self.screen, (255, 0, 0), self.button_pause_save, -1)
+        pg.draw.rect(self.screen, (255, 0, 0), self.button_pause_quit, -1)
         pg.display.flip()
         self.wait_for_key()
 
     def show_start_screen(self):
         pg.mouse.set_visible(True)
         self.current_screen = "Start Screen"
-        self.screen.blit(pg.image.load(path.join(img_folder, settings.mainscreen)).convert_alpha(), (0,0))
+        self.screen.blit(pg.image.load(path.join(img_folder, settings.mainscreen)).convert_alpha(), (0, 0))
         self.button_start_start = pg.Rect(68, 204, 220, 30)
         self.button_start_option = pg.Rect(64, 340, 190, 35)
         self.button_start_load = pg.Rect(68, 465, 125, 30)
         self.button_start_quit = pg.Rect(63, 596, 130, 30)
-        pg.draw.rect(self.screen, (0, 0, 0), self.button_start_start,-1)
-        pg.draw.rect(self.screen, (0, 0, 0), self.button_start_load,-1)
-        pg.draw.rect(self.screen, (0, 0, 0), self.button_start_option,-1)
-        pg.draw.rect(self.screen, (0, 0, 0), self.button_start_quit,-1)
+        pg.draw.rect(self.screen, (0, 0, 0), self.button_start_start, -1)
+        pg.draw.rect(self.screen, (0, 0, 0), self.button_start_load, -1)
+        pg.draw.rect(self.screen, (0, 0, 0), self.button_start_option, -1)
+        pg.draw.rect(self.screen, (0, 0, 0), self.button_start_quit, -1)
         pg.display.flip()
         pg.mixer.music.pause()
         self.wait_for_key()
@@ -364,35 +378,35 @@ class Game:
     def show_victoryscreen(self):
         pg.mouse.set_visible(True)
         self.current_screen = "victoryscreen"
-        self.screen.blit(pg.image.load(path.join(img_folder, settings.victoryscreen)).convert_alpha(), (0,0))
+        self.screen.blit(pg.image.load(path.join(img_folder, settings.victoryscreen)).convert_alpha(), (0, 0))
         self.button_go_restart = pg.Rect(100, 703, 288, 33)
         self.button_go_quit = pg.Rect(640, 706, 192, 28)
-        pg.draw.rect(self.screen, (255, 0, 0), self.button_go_restart,-1)
-        pg.draw.rect(self.screen, (255, 0, 0), self.button_go_quit,-1)
+        pg.draw.rect(self.screen, (255, 0, 0), self.button_go_restart, -1)
+        pg.draw.rect(self.screen, (255, 0, 0), self.button_go_quit, -1)
         pg.display.flip()
         self.wait_for_key()
 
     def show_go_screen(self):
         pg.mouse.set_visible(True)
         self.current_screen = "Game Over Screen"
-        self.screen.blit(pg.image.load(path.join(img_folder, settings.gameoverscreen)).convert_alpha(), (0,0))
-        self.button_go_restart = pg.Rect(156, 666, 289, 32 )
+        self.screen.blit(pg.image.load(path.join(img_folder, settings.gameoverscreen)).convert_alpha(), (0, 0))
+        self.button_go_restart = pg.Rect(156, 666, 289, 32)
         self.button_go_quit = pg.Rect(694, 666, 192, 29)
-        pg.draw.rect(self.screen, (255, 0, 0), self.button_go_restart,-1)
-        pg.draw.rect(self.screen, (255, 0, 0), self.button_go_quit,-1)
+        pg.draw.rect(self.screen, (255, 0, 0), self.button_go_restart, -1)
+        pg.draw.rect(self.screen, (255, 0, 0), self.button_go_quit, -1)
         pg.display.flip()
         self.wait_for_key()
 
     def options(self):
         pg.mouse.set_visible(True)
         self.current_screen = "Options Screen"
-        self.screen.blit(pg.image.load(path.join(img_folder, settings.optionscreen)).convert_alpha(),(0,0))
+        self.screen.blit(pg.image.load(path.join(img_folder, settings.optionscreen)).convert_alpha(), (0, 0))
         self.button_options_return = pg.Rect(336, 480, 385, 57)
         self.button_options_volumeup = pg.Rect(744, 80, 40, 72)
         self.button_options_volumedown = pg.Rect(272, 80, 40, 72)
-        pg.draw.rect(self.screen, (0, 0, 0), self.button_options_return,-1)
-        pg.draw.rect(self.screen, (255, 0, 0), self.button_options_volumeup,-1)
-        pg.draw.rect(self.screen, (255, 0, 0), self.button_options_volumedown,-1)
+        pg.draw.rect(self.screen, (0, 0, 0), self.button_options_return, -1)
+        pg.draw.rect(self.screen, (255, 0, 0), self.button_options_volumeup, -1)
+        pg.draw.rect(self.screen, (255, 0, 0), self.button_options_volumedown, -1)
         self.draw_volume()
         pg.display.flip()
         self.wait_for_key()
@@ -487,6 +501,11 @@ class Game:
                         self.draw_volume()
 
             self.click_test = False
+
+
+g = Game()
+g.show_start_screen()
+
 
 g = Game()
 g.show_start_screen()
