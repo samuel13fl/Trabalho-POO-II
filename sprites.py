@@ -10,48 +10,68 @@ import math
 vec = pg.math.Vector2
 
 
-def collide_with_walls(sprite, group, dir):
-    if dir == 'x':
-        hits = pg.sprite.spritecollide(sprite, group, False, collide_hit_rect)
-        if hits:
-            if hits[0].rect.centerx > sprite.hit_rect.centerx:
-                sprite.pos.x = hits[0].rect.left - sprite.hit_rect.width / 2
-            if hits[0].rect.centerx < sprite.hit_rect.centerx:
-                sprite.pos.x = hits[0].rect.right + sprite.hit_rect.width / 2
-            sprite.vel.x = 0
-            sprite.hit_rect.centerx = sprite.pos.x
-    if dir == 'y':
-        hits = pg.sprite.spritecollide(sprite, group, False, collide_hit_rect)
-        if hits:
-            if hits[0].rect.centery > sprite.hit_rect.centery:
-                sprite.pos.y = hits[0].rect.top - sprite.hit_rect.height / 2
-            if hits[0].rect.centery < sprite.hit_rect.centery:
-                sprite.pos.y = hits[0].rect.bottom + sprite.hit_rect.height / 2
-            sprite.vel.y = 0
-            sprite.hit_rect.centery = sprite.pos.y
+# classe feita para colisão de uma sprite com as paredes do jogo
+class Collide:
+    def __init__(self, sprite, group):
+        self.sprite = sprite
+        self.group = group
+
+    def collide_with_walls(self, dir):
+        # colisão na horizontal
+        # o parâmetro collide_hit_rect é necessário para fazer a função usar hit_rect ao invés de rect
+        # lembrando que rect é só para a imagem, não para a colisão
+        if dir == 'x':
+            hits = pg.sprite.spritecollide(self.sprite, self.group, False, collide_hit_rect)
+            if hits:
+                # checa se o centro da parede é maior que o centro do jogador
+                # é necessário fazer isso para as 4 direções possíveis
+                if hits[0].rect.centerx > self.sprite.hit_rect.centerx:
+                    self.sprite.pos.x = hits[0].rect.left - self.sprite.hit_rect.width / 2
+                if hits[0].rect.centerx < self.sprite.hit_rect.centerx:
+                    self.sprite.pos.x = hits[0].rect.right + self.sprite.hit_rect.width / 2
+                self.sprite.vel.x = 0
+                self.sprite.hit_rect.centerx = self.sprite.pos.x
+        # colisão na vertical
+        if dir == 'y':
+            hits = pg.sprite.spritecollide(self.sprite, self.group, False, collide_hit_rect)
+            if hits:
+                if hits[0].rect.centery > self.sprite.hit_rect.centery:
+                    self.sprite.pos.y = hits[0].rect.top - self.sprite.hit_rect.height / 2
+                if hits[0].rect.centery < self.sprite.hit_rect.centery:
+                    self.sprite.pos.y = hits[0].rect.bottom + self.sprite.hit_rect.height / 2
+                self.sprite.vel.y = 0
+                self.sprite.hit_rect.centery = self.sprite.pos.y
 
 
 class Player(pg.sprite.Sprite):
     def __init__(self, game, x, y):
-        # self.groups = game.all_sprites
         pg.sprite.Sprite.__init__(self, game.all_sprites)
         self.game = game
         self.image = pg.image.load(path.join(img_folder, PLAYER_IMG)).convert_alpha()
+
+        # criando a imagem e centro da sprite
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
+
+        # o jogador terá dois retângulos, um para colisão e um para a imagem
+        # isso é importante pois quando a sprite é rotacionada, o tamanho do retângulo dela muda
+        # o hit_rect tem tamanho fixo, então funciona melhor para detectar colisões
         self.hit_rect = PLAYER_HIT_RECT
         self.hit_rect.center = self.rect.center
-        self.vel = vec(0, 0)
-        self.pos = vec(x, y)
-        self.rot = 0
-        self.last_shot = 0
+
+        self.vel = vec(0, 0)  # velocidade inicial do jogador (vec é pra fazer um vetor)
+        self.pos = vec(x, y)  # posição inicial do jogador
+
+        self.rot = 0  # valor que define o quanto a sprite será rotacionada
+
+        self.last_shot = 0  # importante para definir o fire rate do jogador
         self.health = PLAYER_HEALTH
         self.weapon = Pistol()
-        self.damaged = False
-        self.orig_image = self.image
+        self.damaged = False  # importante na função dos invincibility frames
+        self.collide = Collide(self, self.game.walls)  # classe que vai fazer a colisão
 
+    # função que define o que é feito em cada comando do jogador. Mover e e atirar
     def get_keys(self):
-        self.rot_speed = 0
         self.vel = vec(0, 0)
         self.click = False
         keys = pg.key.get_pressed()
@@ -68,6 +88,7 @@ class Player(pg.sprite.Sprite):
         if pg.mouse.get_pressed()[0]:
             self.shoot()
 
+    #  rotaciona a sprite de acordo com a posição do mouse
     def rotate(self):
         mouse_pos_x, mouse_pos_y = self.game.mousepos_worldpos(pg.mouse.get_pos())
         rel_x = mouse_pos_x - self.pos.x
@@ -78,44 +99,55 @@ class Player(pg.sprite.Sprite):
 
     def shoot(self):
         now = pg.time.get_ticks()
-        if now - self.last_shot > self.weapon.rate:
+        if now - self.last_shot > self.weapon.rate:  # checa se o tempo atual é maior que o tempo após o ultimo tiro
             self.last_shot = now
-            dir = vec(1, 0).rotate(-self.rot)
-            pos = self.pos + BARREL_OFFSET.rotate(-self.rot)
-            self.vel = vec(-self.weapon.kickback, 0).rotate(-self.rot)
+            dir = vec(1, 0).rotate(-self.rot)  # definindo a direção da bala, mesma rotação que o jogador
+            pos = self.pos + BARREL_OFFSET.rotate(-self.rot)  # spawnando a bala na mão do jogador, usando offset
+            self.vel = vec(-self.weapon.kickback, 0).rotate(-self.rot)  # recuo do jogador em cada tiro
             for i in range(self.weapon.bullet_count):
-                spread = uniform(-self.weapon.spread, self.weapon.spread)
+
+                # uniform retorna um número entre os dois que foram passados
+                spread = uniform(-self.weapon.spread, self.weapon.spread)  # escolhendo aleatoriamente o spread
                 Bullet(self.game, pos, dir.rotate(spread), self.weapon.damage)
                 snd = choice(self.game.weapon_sounds[self.weapon.name])
                 if snd.get_num_channels() > 2:
                     snd.stop()
                 snd.play()
+
+            # shot é o efeito que aparace em cada tiro, spawna na mesma posição que a bala
             Shot(self.game, pos)
 
+    # função que pisca o jogador quando ele tomar um hit
     def hit(self):
         self.damaged = True
+        # damage alpha é uma corrente de valores de cor que aumentam gradualmente
         self.damage_alpha = chain(DAMAGE_ALPHA * 4)
 
     def update(self):
         self.rotate()
         self.get_keys()
-        self.rot = (self.rot + self.rot_speed * self.game.dt) % 360
+
+        # criamos uma imagem temporária para rotacionar, fazer isso direto na do jogador distorce ela
         temp = pg.image.load(path.join(img_folder, PLAYER_IMG)).convert_alpha()
         self.image = pg.transform.rotate(temp, self.rot)
+
+        # faz o jogador piscar quando toma um hit (self.damage é setado na função hit)
         if self.damaged:
             try:
                 self.image.fill((255, 255, 255, next(self.damage_alpha)), special_flags=pg.BLEND_RGBA_MULT)
             except:
                 self.damaged = False
+
         self.rect = self.image.get_rect()
         self.rect.center = self.pos
         self.pos += self.vel * self.game.dt
         self.hit_rect.centerx = self.pos.x
-        collide_with_walls(self, self.game.walls, 'x')
+        self.collide.collide_with_walls('x')
         self.hit_rect.centery = self.pos.y
-        collide_with_walls(self, self.game.walls, 'y')
+        self.collide.collide_with_walls('y')
         self.rect.center = self.hit_rect.center
 
+    # restora a vida quando o jogador pega uma poção
     def add_health(self, amount):
         self.health += amount
         if self.health > PLAYER_HEALTH:
@@ -141,33 +173,45 @@ class Mob(pg.sprite.Sprite):
         self.speed = choice(MOB_SPEEDS)
         self.target = game.player
         self.splat = pg.transform.scale(pg.image.load(path.join(img_folder, SPLAT)).convert_alpha(), (64, 64))
+        self.collide = Collide(self, self.game.walls)
 
+    # função para um mob evitar os outros
     def avoid_mobs(self):
         for mob in self.game.mobs:
             if mob != self:
                 dist = self.pos - mob.pos
+
+                # se outro mob estiver dentro do raio, um vetor de aceleração é posto contra ele
                 if 0 < dist.length() < AVOID_RADIUS:
                     self.acc += dist.normalize()
 
     def update(self):
         target_dist = self.target.pos - self.pos
-        if target_dist.length_squared() < DETECT_RADIUS ** 2:
+
+        # lenght squared serve para evitar cálculos de raiz que são lentos
+        if target_dist.length_squared() < DETECT_RADIUS ** 2:  # checa se o jogador está perto
             if random() < 0.002:
                 choice(self.game.zombie_moan_sounds).play()
+
+            # a função "angle to" encontra o angulo do eixo x até a posição do jogador
+            # assim, podemos rotacionar a sprite do zumbi
             self.rot = target_dist.angle_to(vec(1, 0))
             self.image = pg.transform.rotate(pg.image.load(path.join(img_folder, MOB_IMG)).convert_alpha(), self.rot)
+
             self.rect.center = self.pos
             self.acc = vec(1, 0).rotate(-self.rot)
+
             self.avoid_mobs()
             if abs(self.acc.length()) >= 0.01:
                 self.acc.scale_to_length(self.speed)
-            self.acc += self.vel * -1
+
+            self.acc += self.vel * -1  # restringe a velocidade máxima do mob
             self.vel += self.acc * self.game.dt
             self.pos += self.vel * self.game.dt + 0.5 * self.acc * self.game.dt ** 2
             self.hit_rect.centerx = self.pos.x
-            collide_with_walls(self, self.game.walls, 'x')
+            self.collide.collide_with_walls('x')
             self.hit_rect.centery = self.pos.y
-            collide_with_walls(self, self.game.walls, 'y')
+            self.collide.collide_with_walls('y')
             self.rect.center = self.hit_rect.center
         if self.health <= 0:
             choice(self.game.zombie_hit_sounds).play()
@@ -187,7 +231,7 @@ class Mob(pg.sprite.Sprite):
             pg.draw.rect(self.image, col, self.health_bar)
 
 
-class Ghost(Mob):
+class Ghost(Mob):  # funciona igual o zumbi, mas sem a colisão com paredes
     def __init__(self, game, x, y):
         super().__init__(game, x, y)
         self.health = 1
@@ -295,17 +339,17 @@ class Item(pg.sprite.Sprite):
         # self.type = type
         self.pos = pos
         self.rect.center = pos
-        self.tween = tween.easeInOutSine
+        #self.tween = tween.easeInOutSine
         self.step = 0
         self.dir = 1
 
-    def update(self):
-        offset = BOB_RANGE * (self.tween(self.step / BOB_RANGE) - 0.5)
-        self.rect.centery = self.pos.y + offset * self.dir
-        self.step += BOB_SPEED
-        if self.step > BOB_RANGE:
-            self.step = 0
-            self.dir *= -1
+    # def update(self):
+    #     #offset = BOB_RANGE * (self.tween(self.step / BOB_RANGE) - 0.5)
+    #     self.rect.centery = self.pos.y + self.dir
+    #     self.step += BOB_SPEED
+    #     if self.step > BOB_RANGE:
+    #         self.step = 0
+    #         self.dir *= -1
 
     def create_image(self):
         item_images = {}

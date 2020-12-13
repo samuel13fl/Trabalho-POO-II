@@ -86,3 +86,7 @@ WEAPON_SOUNDS = {'pistol': ['pistol.wav'],
                  'shotgun': ['shotgun.wav'],
                  'staff': ['shotgun.wav']}
 EFFECTS_SOUNDS = {'health_up': 'health_pack.wav', 'gun_pickup': 'gun_pickup.wav'}
+
+# função que checa se duas sprites estão colidindo
+def collide_hit_rect(one, two):
+    return one.hit_rect.colliderect(two.rect)
