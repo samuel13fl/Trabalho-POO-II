@@ -4,7 +4,7 @@ from random import uniform
 
 
 class Bullet(pg.sprite.Sprite):
-    def __init__(self, game, pos, dir, damage):
+    def __init__(self, game, pos, dir, damage):  # dir é direção que a bala percorrerá
         self.groups = game.all_sprites, game.bullets
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game

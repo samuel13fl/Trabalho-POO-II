@@ -4,7 +4,7 @@ from collide import Collide
 from mob import Mob
 
 
-class Ghost(Mob):
+class Ghost(Mob):  # funciona igual o zumbi, mas sem a colisão com paredes
     def __init__(self, game, x, y):
         super().__init__(game, x, y)
         self.health = 1
