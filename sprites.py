@@ -262,16 +262,15 @@ class Ghost(Mob):  # funciona igual o zumbi, mas sem a colisão com paredes
 
 
 class Bullet(pg.sprite.Sprite):
-    def __init__(self, game, pos, dir, damage):
+    def __init__(self, game, pos, dir, damage):  # dir é direção que a bala percorrerá
         self.groups = game.all_sprites, game.bullets
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
-        self.image = self.create_image(game.player.weapon.name)
+        self.image = self.create_image()
         self.rect = self.image.get_rect()
         self.hit_rect = self.rect
         self.pos = vec(pos)
         self.rect.center = pos
-        # spread = uniform(-GUN_SPREAD, GUN_SPREAD)
         self.vel = dir * self.game.player.weapon.bullet_speed * uniform(0.9, 1.1)
         self.spawn_time = pg.time.get_ticks()
         self.damage = damage
@@ -284,7 +283,7 @@ class Bullet(pg.sprite.Sprite):
         if pg.time.get_ticks() - self.spawn_time > self.game.player.weapon.bullet_lifetime:
             self.kill()
 
-    def create_image(self, player_weapon):
+    def create_image(self):
         bullet_images = {}
         bullet_images['lg'] = pg.image.load(path.join(img_folder, BULLET_IMG)).convert_alpha()
         bullet_images['sm'] = pg.transform.scale(bullet_images['lg'], (10, 10))
