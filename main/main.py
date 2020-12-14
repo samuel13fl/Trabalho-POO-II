@@ -99,7 +99,6 @@ class Game:
         self.walls = pg.sprite.Group()
         self.mobs = pg.sprite.Group()
         self.mobslist = []
-        self.ghostlist = []
         self.bullets = pg.sprite.Group()
         self.items = pg.sprite.Group()
         self.itemslist = []
@@ -119,8 +118,8 @@ class Game:
                 M = Mob(self, obj_center.x, obj_center.y)
                 self.mobslist.append(M)
             if tile_object.name == 'ghost':
-                G = Ghost(self, obj_center.x, obj_center.y)
-                self.ghostlist.append(G)
+                M = Ghost(self, obj_center.x, obj_center.y)
+                self.mobslist.append(M)
             if tile_object.name == 'wall':
                 Obstacle(self, tile_object.x, tile_object.y, tile_object.width, tile_object.height)
             if tile_object.name in ['health', 'shotgun', 'staff']:
@@ -199,10 +198,6 @@ class Game:
                 mob.health -= bullet.damage
                 if mob.health <= 0 and mob in self.mobslist:
                     self.mobslist.remove(mob)
-                if mob.health <= 0 and mob in self.ghostlist:
-                    self.ghostlist.remove(mob)
-
-
             mob.vel = vec(0, 0)
 
     # função que é chamada quando um novo jogo começa
@@ -308,9 +303,8 @@ class Game:
         for i in range(len(self.mobslist)):
             if isinstance(self.mobslist[i], Mob):
                 self.mobspos.append(self.mobslist[i].pos)
-        for i in range(len(self.ghostlist)):
-            if isinstance(self.ghostlist[i], Ghost):
-                self.ghostpos.append(self.ghostlist[i].pos)
+            if isinstance(self.mobslist[i], Ghost):
+                self.ghostpos.append(self.mobslist[i].pos)
         for item in self.itemslist:
             self.itemspos.append([item.pos, item.type])
         with open("savefile", "wb") as f:
@@ -327,7 +321,6 @@ class Game:
         self.walls = pg.sprite.Group()
         self.mobs = pg.sprite.Group()
         self.mobslist = []
-        self.ghostlist = []
         self.bullets = pg.sprite.Group()
         self.items = pg.sprite.Group()
         self.itemslist = []
@@ -342,8 +335,8 @@ class Game:
             M = Mob(self, zombie[0], zombie[1])
             self.mobslist.append(M)
         for ghost in loaddata[3]:
-            G = Ghost(self, ghost[0], ghost[1])
-            self.ghostlist.append(G)
+            M = Ghost(self, ghost[0], ghost[1])
+            self.mobslist.append(M)
         for item in loaddata[2]:
             I = Item(self, item[0], item[1])
             self.itemslist.append(I)
