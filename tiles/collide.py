@@ -1,5 +1,5 @@
 import pygame as pg
-from tilemap import collide_hit_rect
+from tiles.tilemap import collide_hit_rect
 
 
 # classe feita para colisão de uma sprite com as paredes do jogo

@@ -1,14 +1,14 @@
 import sys
 from random import choice, random
-import settings
+import main.settings as settings
 import pickle
-from tilemap import *
-from player import Player
-from mob import Mob
-from ghost import Ghost
-from obstacle import Obstacle
-from weapon import *
-from item import Item
+from tiles.tilemap import *
+from entity.player import Player
+from entity.mob import Mob
+from entity.ghost import Ghost
+from tiles.obstacle import Obstacle
+from items.weapon import *
+from items.item import Item
 
 
 class Game:

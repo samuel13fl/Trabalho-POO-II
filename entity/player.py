@@ -1,9 +1,9 @@
-from settings import *
-from collide import Collide
+from main.settings import *
+from tiles.collide import Collide
 import math
-from bullet import Bullet
-from shot import Shot
-from weapon import *
+from items.bullet import Bullet
+from items.shot import Shot
+from items.weapon import *
 from random import choice, uniform
 from itertools import chain
 

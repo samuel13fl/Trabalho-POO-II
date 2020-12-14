@@ -1,5 +1,5 @@
 import pygame as pg
-from settings import *
+from main.settings import *
 from random import uniform
 
 

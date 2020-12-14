@@ -1,5 +1,5 @@
 import pytmx
-from settings import *
+from main.settings import *
 
 
 class TiledMap:

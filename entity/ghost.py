@@ -1,7 +1,7 @@
-from settings import *
+from main.settings import *
 from random import choice, random
-from collide import Collide
-from mob import Mob
+from tiles.collide import Collide
+from entity.mob import Mob
 
 
 class Ghost(Mob):  # funciona igual o zumbi, mas sem a colisão com paredes

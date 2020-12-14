@@ -1,6 +1,6 @@
 import pygame as pg
 import pytweening as tween
-from settings import *
+from main.settings import *
 
 
 class Item(pg.sprite.Sprite):

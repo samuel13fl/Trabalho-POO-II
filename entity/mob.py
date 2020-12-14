@@ -1,7 +1,7 @@
 import pygame as pg
-from settings import *
+from main.settings import *
 from random import choice, random
-from collide import Collide
+from tiles.collide import Collide
 
 
 class Mob(pg.sprite.Sprite):
